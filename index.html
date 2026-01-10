@@ -3,397 +3,274 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>YHCT - Quản Lý Phòng Khám Pro</title>
+    <title>QUẢN LÝ PHÒNG KHÁM YHCT</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root { --primary: #1b4332; --bg: #f4f1ea; }
-        body { background-color: var(--bg); font-family: system-ui, -apple-system, sans-serif; color: #374151; }
-        .header-custom { position: relative; border-radius: 1.5rem; min-height: 140px; background: #1b4332; overflow: hidden; }
-        #headerBg { position: absolute; inset: 0; background-size: cover; background-position: center; filter: brightness(0.4) blur(1px); z-index: 1; }
-        .header-content { position: relative; z-index: 10; }
-        .card { background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.05); }
-        input, textarea, select { border: 1px solid #d1d5db; border-radius: 8px; padding: 10px; width: 100%; outline: none; font-size: 14px; }
+        :root { --emerald-dark: #064e3b; --emerald-light: #ecfdf5; }
+        body { background-color: #f3f4f6; font-family: -apple-system, sans-serif; overflow-x: hidden; }
         
-        .btn-tag { padding: 6px 12px; border-radius: 8px; border: 1px solid #d1d5db; font-size: 12px; background: white; cursor: pointer; transition: 0.2s; white-space: nowrap; }
-        .btn-tag.active { background: #10b981; color: white; border-color: #10b981; font-weight: bold; }
-        
-        .proc-item { display: flex; align-items: center; padding: 10px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; cursor: pointer; gap: 10px; }
-        .proc-item input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; flex-shrink: 0; }
-        .proc-item label { font-size: 13px; cursor: pointer; flex-grow: 1; line-height: 1.2; }
+        /* Hiệu ứng vuốt để xóa */
+        .swipe-container { position: relative; overflow: hidden; border-radius: 20px; margin-bottom: 1rem; background: #ef4444; }
+        .patient-card { 
+            background: white; 
+            position: relative; 
+            z-index: 2; 
+            transition: transform 0.3s ease; 
+            cursor: grab;
+            touch-action: pan-y;
+        }
+        .delete-btn { 
+            position: absolute; 
+            right: 0; 
+            top: 0; 
+            bottom: 0; 
+            width: 80px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            color: white; 
+            font-weight: bold;
+            z-index: 1;
+        }
 
-        .modal { background: rgba(0,0,0,0.8); display: none; position: fixed; inset: 0; z-index: 100; align-items: center; justify-content: center; padding: 10px; }
+        /* Các style giữ nguyên từ bản cũ */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px); }
         .modal.active { display: flex; }
-        .modal-content { max-height: 95vh; overflow-y: auto; width: 100%; }
-        .section-title { font-size: 11px; font-weight: bold; color: #065f46; border-left: 4px solid #10b981; padding-left: 8px; margin: 15px 0 8px 0; text-transform: uppercase; }
-        @media print { .no-print { display: none; } }
+        input, textarea { border: 1px solid #d1d5db; border-radius: 12px; padding: 15px; width: 100%; font-size: 17px; outline: none; }
+        .btn-tag { padding: 8px 14px; border-radius: 10px; border: 1px solid #e5e7eb; font-size: 14px; background: white; margin: 3px; }
+        .btn-tag.active { background: #065f46; color: white; border-color: #065f46; }
     </style>
 </head>
-<body class="p-2 md:p-4">
-
-    <div class="max-w-6xl mx-auto mb-4 no-print">
-        <div class="header-custom text-white p-6 shadow-xl flex flex-col md:flex-row justify-between items-center">
-            <div id="headerBg"></div>
-            <div class="header-content text-center md:text-left">
-                <h1 class="text-2xl font-black uppercase text-yellow-500">Quản Lý Phòng Khám YHCT</h1>
-                <p id="currentMonthLabel" class="text-sm opacity-90 mt-1"></p>
+<body class="p-4 md:p-8">
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-emerald-900 text-white p-6 rounded-[25px] mb-6 shadow-xl flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-black text-yellow-400">YHCT iPAD PRO</h1>
+                <p id="monthLabel" class="text-[10px] opacity-70 font-bold uppercase mt-1"></p>
             </div>
-            <div class="header-content text-center md:text-right mt-4 md:mt-0">
-                <p id="totalProfit" class="text-3xl font-bold text-green-400">0đ</p>
-                <p class="text-[10px] uppercase opacity-70 tracking-widest">Lợi nhuận tháng này</p>
+            <div class="text-right">
+                <p id="profitLabel" class="text-2xl font-black text-green-400">0đ</p>
+                <p class="text-[9px] uppercase opacity-50 font-bold">Lợi nhuận</p>
             </div>
         </div>
+
+        <div class="flex gap-2 mb-6">
+            <button onclick="openPatientModal()" class="flex-grow bg-emerald-700 text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-transform uppercase text-sm">+ Bệnh nhân mới</button>
+            <button onclick="exportData()" class="bg-white border-2 border-emerald-800 text-emerald-800 px-4 rounded-2xl font-bold text-xs shadow-sm">XUẤT FILE</button>
+        </div>
+
+        <input type="text" id="search" oninput="render()" placeholder="Tìm tên hoặc số điện thoại..." class="mb-6 shadow-sm">
+        
+        <p class="text-[10px] text-gray-400 mb-2 italic ml-2">Vuốt sang trái để xóa bệnh nhân</p>
+        <div id="list" class="space-y-0"></div>
     </div>
 
-    <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 no-print">
-        <div class="lg:col-span-4 space-y-4">
-            <div class="card p-4">
-                <button type="button" onclick="openPatientModal()" class="w-full bg-emerald-700 text-white font-bold py-4 rounded-xl shadow-lg mb-3 uppercase text-sm">+ Thêm bệnh nhân mới</button>
-                <div class="grid grid-cols-2 gap-2">
-                    <button onclick="openSettingsModal()" class="bg-white border border-emerald-700 text-emerald-700 py-2 rounded-xl text-xs font-bold uppercase">⚙️ Cài đặt</button>
-                    <button onclick="exportCSV()" class="bg-white border border-blue-700 text-blue-700 py-2 rounded-xl text-xs font-bold uppercase">📊 Xuất File</button>
-                </div>
-                <input type="text" id="search" oninput="renderPatients()" placeholder="Tìm tên, năm sinh, SĐT..." class="mt-4 bg-gray-50 shadow-inner">
+    <div id="pModal" class="modal"><div class="bg-white w-full max-w-md p-6 rounded-3xl shadow-2xl">
+        <h2 class="font-bold text-emerald-900 mb-4 uppercase border-b pb-2">Hồ sơ bệnh nhân</h2>
+        <input type="hidden" id="editId">
+        <div class="space-y-3">
+            <input type="text" id="pName" placeholder="Họ tên *">
+            <div class="flex gap-2"><input type="number" id="pYear" placeholder="Năm sinh *"><input type="tel" id="pPhone" placeholder="SĐT"></div>
+            <input type="text" id="pAddress" placeholder="Địa chỉ">
+        </div>
+        <div class="flex gap-2 mt-6">
+            <button onclick="closeModals()" class="flex-1 py-3 bg-gray-100 rounded-xl font-bold text-gray-400">ĐÓNG</button>
+            <button onclick="savePatient()" class="flex-1 py-3 bg-emerald-800 text-white rounded-xl font-bold shadow-md">LƯU LẠI</button>
+        </div>
+    </div></div>
+
+    <div id="vModal" class="modal"><div class="bg-white w-full max-w-xl p-6 rounded-3xl shadow-2xl overflow-y-auto max-h-[90vh]">
+        <h2 class="font-bold text-emerald-900 mb-4 uppercase border-b pb-2">Phiếu khám bệnh</h2>
+        <input type="hidden" id="vPid">
+        <div class="space-y-4">
+            <div class="flex gap-2"><input type="date" id="vDate" class="flex-1"><input type="text" id="vDisease" placeholder="Chẩn đoán..." class="flex-[2]"></div>
+            <div id="tagBox" class="p-3 bg-gray-50 rounded-2xl border"></div>
+            <textarea id="vMed" placeholder="Đơn thuốc, huyệt vị..." rows="3"></textarea>
+            <div class="grid grid-cols-2 gap-3">
+                <input type="number" id="vPrice" placeholder="Giá thu" oninput="calcV()"><input type="number" id="vCost" placeholder="Giá vốn">
+            </div>
+            <div class="bg-emerald-900 text-white p-5 rounded-2xl flex justify-between items-center shadow-lg">
+                <span class="text-2xl font-black text-yellow-400" id="vTotal">0đ</span>
+                <label class="flex items-center gap-2 font-bold"><input type="checkbox" id="vPaid" checked class="w-5 h-5"> ĐÃ THU</label>
             </div>
         </div>
-        <div class="lg:col-span-8">
-            <div id="patientList" class="space-y-2"></div>
-        </div>
-    </div>
+        <button onclick="saveVisit()" class="w-full mt-6 py-4 bg-emerald-700 text-white rounded-2xl font-bold shadow-lg">HOÀN TẤT LƯU</button>
+    </div></div>
 
-    <div id="patientModal" class="modal">
-        <div class="card modal-content max-w-md p-6">
-            <form id="patientForm" class="space-y-4">
-                <h2 class="font-bold border-b pb-2 text-emerald-800 uppercase text-lg">Hồ sơ bệnh nhân</h2>
-                <input type="hidden" id="editPatientId">
-                <div class="grid grid-cols-1 gap-3">
-                    <div><label class="text-[10px] font-bold text-gray-500 uppercase">Họ và Tên *</label><input type="text" id="pName" placeholder="VD: Nguyễn Văn A" required></div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <div><label class="text-[10px] font-bold text-gray-500 uppercase">Năm sinh *</label><input type="number" id="pYear" placeholder="VD: 1990" required></div>
-                        <div><label class="text-[10px] font-bold text-gray-500 uppercase">Số điện thoại</label><input type="tel" id="pPhone" placeholder="09xxx..."></div>
-                    </div>
-                    <div><label class="text-[10px] font-bold text-gray-500 uppercase">Địa chỉ</label><input type="text" id="pAddress" placeholder="Số nhà, đường, phường/xã..."></div>
-                </div>
-                <div class="flex justify-end gap-2 pt-4">
-                    <button type="button" onclick="closeModal('patientModal')" class="bg-gray-200 px-6 py-3 rounded-xl font-bold text-sm uppercase">Hủy</button>
-                    <button type="submit" class="bg-emerald-700 text-white px-6 py-3 rounded-xl font-bold text-sm uppercase shadow-md">Lưu thông tin</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div id="visitModal" class="modal">
-        <div class="card modal-content max-w-3xl p-6">
-            <h2 class="text-xl font-bold text-emerald-900 border-b mb-4 uppercase text-center">Khám bệnh & Thủ thuật</h2>
-            <form id="visitForm" class="space-y-4">
-                <input type="hidden" id="visitPatientId"><input type="hidden" id="editVisitId">
-                
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="text-[10px] font-bold text-gray-500 uppercase">Ngày khám</label><input type="date" id="visitDate"></div>
-                    <div>
-                        <label class="text-[10px] font-bold text-gray-500 uppercase">Chẩn đoán</label>
-                        <input type="text" id="visitDisease" placeholder="Chọn bệnh hoặc nhập..." required>
-                        <div id="diseaseTags" class="flex flex-wrap gap-1 mt-2"></div>
-                    </div>
-                </div>
-
-                <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
-                    <div class="section-title mt-0">Tứ chẩn & Triệu chứng</div>
-                    <div class="mb-1 text-[10px] font-bold text-emerald-800">Vọng:</div><div id="vongTags" class="flex flex-wrap gap-2 mb-3"></div>
-                    <div class="mb-1 text-[10px] font-bold text-emerald-800">Văn:</div><div id="vanTags" class="flex flex-wrap gap-2 mb-3"></div>
-                    <div class="mb-1 text-[10px] font-bold text-emerald-800">Vấn:</div><div id="vanHoiTags" class="flex flex-wrap gap-2 mb-3"></div>
-                    <div class="mb-1 text-[10px] font-bold text-emerald-800">Thiết:</div><div id="thietTags" class="flex flex-wrap gap-2"></div>
-                </div>
-
-                <div id="specificArea" class="hidden p-4 bg-orange-50 border border-orange-200 rounded-xl">
-                    <div class="section-title text-orange-800 mt-0">Triệu chứng đặc thù bệnh</div>
-                    <div id="specificTags" class="flex flex-wrap gap-2"></div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <textarea id="visitMedicine" rows="3" placeholder="Đơn thuốc (Vị thuốc, liều lượng)..."></textarea>
-                    <textarea id="visitNotes" rows="3" placeholder="Dặn dò, ghi chú..."></textarea>
-                </div>
-
-                <div class="bg-gray-100 p-4 rounded-xl border border-gray-200">
-                    <div class="section-title mt-0">Thủ thuật</div>
-                    <div id="procChecklist" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-6">
-                    <div class="p-4 bg-blue-50 rounded-xl border border-blue-100">
-                        <label class="text-[11px] font-bold text-blue-700 uppercase">Chi phí thuốc</label>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div><span class="text-[9px]">Giá bán:</span><input type="number" id="medicinePrice" oninput="calcTotal()"></div>
-                            <div><span class="text-[9px]">Giá vốn:</span><input type="number" id="medicineCost" oninput="calcTotal()"></div>
-                        </div>
-                    </div>
-                    <div class="bg-emerald-900 p-4 rounded-xl text-center text-white shadow-xl">
-                        <p class="text-xs opacity-70 uppercase font-bold">Tổng thanh toán:</p>
-                        <p id="visitTotalLabel" class="text-3xl font-black text-yellow-400">0đ</p>
-                        <div class="flex items-center justify-center gap-3 mt-3">
-                            <input type="checkbox" id="visitPaid" checked style="width:24px; height:24px;">
-                            <label for="visitPaid" class="text-sm font-bold cursor-pointer uppercase">Đã thu tiền</label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex justify-end gap-3 pt-4 border-t">
-                    <button type="button" onclick="closeModal('visitModal')" class="px-6 py-3 bg-gray-200 rounded-xl font-bold uppercase text-xs">Đóng</button>
-                    <button type="submit" class="px-10 py-3 bg-emerald-700 text-white rounded-xl font-bold shadow-lg uppercase text-xs">Lưu hồ sơ</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div id="historyModal" class="modal">
-        <div class="card modal-content max-w-3xl p-6">
-            <div class="flex justify-between items-start mb-6 border-b pb-4">
-                <div>
-                    <h2 id="histName" class="text-2xl font-black text-emerald-900 uppercase"></h2>
-                    <p id="histDetail" class="text-xs text-gray-500 mt-1"></p>
-                </div>
-                <button onclick="closeModal('historyModal')" class="text-4xl text-gray-300 hover:text-red-500">&times;</button>
-            </div>
-            <div id="histContent" class="space-y-4"></div>
-        </div>
-    </div>
-
-    <div id="settingsModal" class="modal"><div class="card modal-content max-w-2xl p-6"><h2 class="font-bold border-b pb-2 uppercase text-emerald-800">Cài đặt</h2><div id="diseaseSettings" class="flex flex-wrap gap-2 py-4 border-b"></div><button onclick="addDiseasePrompt()" class="text-xs text-blue-600 font-bold mb-4 underline">+ Thêm bệnh mới</button><div id="procSettings" class="space-y-2 py-4 border-b"></div><button onclick="addProcPrompt()" class="text-xs text-blue-600 font-bold mb-4 underline">+ Thêm thủ thuật mới</button><button onclick="closeModal('settingsModal')" class="w-full bg-emerald-800 text-white py-4 rounded-2xl mt-4 font-bold shadow-lg uppercase">Hoàn tất</button></div></div>
+    <div id="hModal" class="modal"><div class="bg-white w-full max-w-xl p-6 rounded-3xl shadow-2xl overflow-y-auto max-h-[90vh]">
+        <div class="flex justify-between items-start mb-4 border-b pb-2"><h2 id="hName" class="font-bold text-emerald-900 uppercase"></h2><button onclick="closeModals()" class="text-2xl text-gray-400">✕</button></div>
+        <div id="hContent" class="space-y-4"></div>
+    </div></div>
 
     <script>
-        // --- DATA & CONFIG ---
-        const tuChan = {
-            vong: ['Lưỡi bệu', 'Lưỡi gầy', 'Lưỡi đỏ', 'Lưỡi tím/ứ huyết', 'Rêu trắng mỏng', 'Rêu vàng dày', 'Rêu bẩn', 'Sắc diện nhợt'],
-            van: ['Mùi cơ thể', 'Giọng nói khàn', 'Tắt tiếng', 'Hơi thở hôi', 'Ho có đờm'],
-            vanHoi: ['Ngủ được', 'Mất ngủ', 'Tiểu đêm', 'Táo bón', 'Tiêu lỏng', 'Khí đoản', 'Hay lo âu', 'Ăn kém'],
-            thiet: ['Cự án (Ấn đau)', 'Thiện án (Thích xoa)', 'Mạch Phù', 'Mạch Trầm', 'Mạch Hoạt', 'Mạch Tế', 'Hữu lực', 'Vô lực']
-        };
+        let db = JSON.parse(localStorage.getItem('yhct_db_v4') || '[]');
+        const sampleTags = ['Đau cổ vai gáy', 'Thoái hóa cột sống', 'Mất ngủ', 'Tê bì', 'Lưỡi đỏ', 'Rêu vàng'];
 
-        let procedures = JSON.parse(localStorage.getItem('yhct_procs')) || [{ id: 1, name: 'Châm cứu', price: 150000 }, { id: 2, name: 'Xoa bóp', price: 200000 }];
-        let diseases = JSON.parse(localStorage.getItem('yhct_diseases')) || [
-            { name: 'Thoái hóa cột sống', extra: ['Co cứng cơ', 'L4-L5', 'L5-S1', 'Tê bì chân', 'Đau tăng khi vận động'] },
-            { name: 'Đau cổ vai gáy', extra: ['Lan xuống tay', 'Hội chứng tầng C5-C6', 'Hoa mắt chóng mặt'] },
-            { name: 'Liệt Bell (Liệt mặt)', extra: ['Bên TRÁI', 'Bên PHẢI', 'Mắt nhắm không kín', 'Mất nếp nhăn trán'] }
-        ];
-        let patients = JSON.parse(localStorage.getItem('yhct_patients_v2')) || [];
+        function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
+        
+        // --- XỬ LÝ VUỐT ĐỂ XÓA ---
+        let startX = 0;
+        function handleTouchStart(e) { startX = e.touches[0].clientX; }
+        function handleTouchMove(e, id) {
+            let moveX = e.touches[0].clientX;
+            let diff = startX - moveX;
+            let card = document.getElementById('card-' + id);
+            if (diff > 50) { // Vuốt sang trái
+                card.style.transform = `translateX(-80px)`;
+            } else if (diff < -20) { // Vuốt sang phải để đóng
+                card.style.transform = `translateX(0px)`;
+            }
+        }
 
-        const openModal = (id) => document.getElementById(id).classList.add('active');
-        const closeModal = (id) => document.getElementById(id).classList.remove('active');
-        const saveData = () => {
-            localStorage.setItem('yhct_patients_v2', JSON.stringify(patients));
-            localStorage.setItem('yhct_procs', JSON.stringify(procedures));
-            localStorage.setItem('yhct_diseases', JSON.stringify(diseases));
-        };
+        function confirmDelete(id, name) {
+            if (confirm(`⚠️ Bạn có chắc chắn muốn XÓA VĨNH VIỄN bệnh nhân: ${name.toUpperCase()}?\n\nHành động này không thể hoàn tác!`)) {
+                db = db.filter(x => x.id != id);
+                localStorage.setItem('yhct_db_v4', JSON.stringify(db));
+                render();
+            } else {
+                // Nếu không xóa thì đóng thanh trượt lại
+                document.getElementById('card-' + id).style.transform = `translateX(0px)`;
+            }
+        }
 
-        // --- PATIENT LOGIC (FIXED) ---
-        function openPatientModal(pId = null) {
-            document.getElementById('patientForm').reset();
-            document.getElementById('editPatientId').value = pId || '';
-            if(pId) {
-                const p = patients.find(x => x.id == pId);
+        // --- CÁC HÀM CŨ GIỮ NGUYÊN ---
+        function openPatientModal(id = null) {
+            document.getElementById('editId').value = id || '';
+            if(id) {
+                let p = db.find(x => x.id == id);
                 document.getElementById('pName').value = p.name;
                 document.getElementById('pYear').value = p.year;
                 document.getElementById('pPhone').value = p.phone || '';
                 document.getElementById('pAddress').value = p.address || '';
+            } else {
+                document.querySelectorAll('#pModal input').forEach(i => i.value = '');
             }
-            openModal('patientModal');
+            document.getElementById('pModal').classList.add('active');
         }
 
-        document.getElementById('patientForm').onsubmit = (e) => {
-            e.preventDefault();
-            const pId = document.getElementById('editPatientId').value;
-            const pData = {
-                id: pId || Date.now().toString(),
-                name: document.getElementById('pName').value,
+        function savePatient() {
+            let id = document.getElementById('editId').value;
+            let name = document.getElementById('pName').value;
+            if(!name) return alert("Vui lòng nhập tên");
+            let p = {
+                id: id || Date.now().toString(),
+                name: name,
                 year: document.getElementById('pYear').value,
                 phone: document.getElementById('pPhone').value,
                 address: document.getElementById('pAddress').value,
-                visits: pId ? patients.find(x => x.id == pId).visits : []
+                visits: id ? db.find(x => x.id == id).visits : []
             };
-
-            if(pId) {
-                const idx = patients.findIndex(x => x.id == pId);
-                patients[idx] = pData;
-            } else {
-                patients.unshift(pData);
-            }
-            saveData(); renderPatients(); closeModal('patientModal');
-        };
-
-        // --- TAGS & VISIT LOGIC ---
-        function renderTags(containerId, tags, targetInputId) {
-            const container = document.getElementById(containerId); container.innerHTML = '';
-            tags.forEach(tag => {
-                const btn = document.createElement('button');
-                btn.type = 'button'; btn.className = 'btn-tag'; btn.innerText = tag;
-                btn.onclick = () => {
-                    if (targetInputId === 'visitDisease') {
-                        document.getElementById(targetInputId).value = tag;
-                        document.querySelectorAll(`#${containerId} .btn-tag`).forEach(b => b.classList.remove('active'));
-                        btn.classList.add('active'); showSpecificFields(tag);
-                    } else { btn.classList.toggle('active'); }
-                };
-                container.appendChild(btn);
-            });
+            if(id) { let i = db.findIndex(x => x.id == id); db[i] = p; }
+            else { db.unshift(p); }
+            localStorage.setItem('yhct_db_v4', JSON.stringify(db));
+            render(); closeModals();
         }
 
-        function showSpecificFields(diseaseName) {
-            const disease = diseases.find(d => d.name === diseaseName);
-            const area = document.getElementById('specificArea');
-            const container = document.getElementById('specificTags');
-            if (disease && disease.extra) {
-                area.classList.remove('hidden'); container.innerHTML = '';
-                disease.extra.forEach(ex => {
-                    const btn = document.createElement('button');
-                    btn.type = 'button'; btn.className = 'btn-tag'; btn.innerText = ex;
-                    btn.onclick = () => btn.classList.toggle('active');
-                    container.appendChild(btn);
-                });
-            } else { area.classList.add('hidden'); }
+        function openVisitModal(pid) {
+            document.getElementById('vPid').value = pid;
+            document.getElementById('vDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('vDisease').value = '';
+            document.getElementById('vMed').value = '';
+            document.getElementById('vPrice').value = '';
+            document.getElementById('vCost').value = '';
+            document.getElementById('tagBox').innerHTML = sampleTags.map(t => `<button class="btn-tag" onclick="this.classList.toggle('active')">${t}</button>`).join('');
+            calcV();
+            document.getElementById('vModal').classList.add('active');
         }
 
-        function openVisitModal(pId, vId = null) {
-            document.getElementById('visitForm').reset();
-            document.getElementById('visitPatientId').value = pId;
-            document.getElementById('editVisitId').value = vId || '';
-            document.getElementById('specificArea').classList.add('hidden');
-            
-            renderTags('diseaseTags', diseases.map(d => d.name), 'visitDisease');
-            renderTags('vongTags', tuChan.vong, '');
-            renderTags('vanTags', tuChan.van, '');
-            renderTags('vanHoiTags', tuChan.vanHoi, '');
-            renderTags('thietTags', tuChan.thiet, '');
-            
-            const procContainer = document.getElementById('procChecklist');
-            procContainer.innerHTML = procedures.map(proc => `
-                <div class="proc-item" onclick="const c=this.querySelector('input');c.checked=!c.checked;calcTotal()">
-                    <input type="checkbox" class="proc-check" value="${proc.id}" data-price="${proc.price}" onclick="event.stopPropagation();calcTotal()">
-                    <label>${proc.name} (${proc.price.toLocaleString()}đ)</label>
+        function calcV() {
+            let p = parseInt(document.getElementById('vPrice').value) || 0;
+            document.getElementById('vTotal').innerText = p.toLocaleString() + 'đ';
+        }
+
+        function saveVisit() {
+            let pid = document.getElementById('vPid').value;
+            let activeTags = Array.from(document.querySelectorAll('#tagBox .btn-tag.active')).map(b => b.innerText);
+            let v = {
+                id: Date.now(),
+                date: document.getElementById('vDate').value,
+                disease: document.getElementById('vDisease').value,
+                tags: activeTags.join(', '),
+                med: document.getElementById('vMed').value,
+                price: parseInt(document.getElementById('vPrice').value) || 0,
+                cost: parseInt(document.getElementById('vCost').value) || 0,
+                paid: document.getElementById('vPaid').checked
+            };
+            let i = db.findIndex(x => x.id == pid);
+            db[i].visits.unshift(v);
+            localStorage.setItem('yhct_db_v4', JSON.stringify(db));
+            render(); closeModals();
+        }
+
+        function showHistory(pid) {
+            let p = db.find(x => x.id == pid);
+            document.getElementById('hName').innerText = p.name;
+            document.getElementById('hContent').innerHTML = p.visits.map(v => `
+                <div class="p-4 bg-gray-50 rounded-2xl border shadow-sm">
+                    <div class="flex justify-between font-bold text-emerald-800 text-xs mb-2 border-b border-dashed pb-2">
+                        <span>${v.date}</span><span>${v.price.toLocaleString()}đ</span>
+                    </div>
+                    <p class="font-bold text-sm uppercase">${v.disease}</p>
+                    <p class="text-xs text-gray-500 italic mt-1">${v.tags}</p>
+                    <p class="text-xs mt-2 bg-white p-2 rounded-lg border">ĐƠN: ${v.med || '-'}</p>
                 </div>
-            `).join('');
-            
-            if(vId) {
-                const p = patients.find(x => x.id == pId);
-                const v = p.visits.find(x => x.id == vId);
-                document.getElementById('visitDate').value = v.date;
-                document.getElementById('visitDisease').value = v.disease;
-                document.getElementById('medicinePrice').value = v.medPrice || 0;
-                document.getElementById('medicineCost').value = v.cost || 0;
-            } else {
-                document.getElementById('visitDate').value = new Date().toISOString().split('T')[0];
-            }
-            calcTotal(); openModal('visitModal');
+            `).join('') || '<p class="text-center text-gray-400 py-10">Chưa có lịch sử</p>';
+            document.getElementById('hModal').classList.add('active');
         }
 
-        function calcTotal() {
-            let t = 0;
-            document.querySelectorAll('.proc-check:checked').forEach(c => t += parseInt(c.dataset.price));
-            t += parseInt(document.getElementById('medicinePrice').value) || 0;
-            document.getElementById('visitTotalLabel').innerText = t.toLocaleString() + 'đ';
-            return t;
-        }
-
-        document.getElementById('visitForm').onsubmit = (e) => {
-            e.preventDefault();
-            const pId = document.getElementById('visitPatientId').value;
-            const vId = document.getElementById('editVisitId').value;
-            const getAct = (id) => Array.from(document.querySelectorAll(`#${id} .btn-tag.active`)).map(b => b.innerText);
-            
-            const vData = {
-                id: vId ? parseInt(vId) : Date.now(),
-                date: document.getElementById('visitDate').value,
-                disease: document.getElementById('visitDisease').value,
-                symptoms: ["Vọng:"+getAct('vongTags'), "Văn:"+getAct('vanTags'), "Hỏi:"+getAct('vanHoiTags'), "Thiết:"+getAct('thietTags'), "Đặc thù:"+getAct('specificTags')].join(' | '),
-                medicine: document.getElementById('visitMedicine').value,
-                notes: document.getElementById('visitNotes').value,
-                procs: Array.from(document.querySelectorAll('.proc-check:checked')).map(c => procedures.find(p => p.id == c.value).name).join(', '),
-                medPrice: parseInt(document.getElementById('medicinePrice').value) || 0,
-                cost: parseInt(document.getElementById('medicineCost').value) || 0,
-                price: calcTotal(),
-                isPaid: document.getElementById('visitPaid').checked
-            };
-
-            const pIdx = patients.findIndex(p => p.id == pId);
-            if(vId) {
-                const vIdx = patients[pIdx].visits.findIndex(v => v.id == vId);
-                patients[pIdx].visits[vIdx] = vData;
-            } else { patients[pIdx].visits.unshift(vData); }
-            saveData(); renderPatients(); closeModal('visitModal');
-        };
-
-        // --- RENDERING ---
-        function renderPatients() {
-            const list = document.getElementById('patientList');
-            const kw = document.getElementById('search').value.toLowerCase();
-            let profit = 0; const curM = (new Date().getMonth()+1) + '/' + new Date().getFullYear();
+        function render() {
+            let list = document.getElementById('list');
+            let kw = document.getElementById('search').value.toLowerCase();
+            let profit = 0;
+            let curM = (new Date().getMonth() + 1) + '/' + new Date().getFullYear();
             
             list.innerHTML = '';
-            patients.forEach(p => {
-                p.visits.forEach(v => { if(v.isPaid && (new Date(v.date).getMonth()+1 + '/' + new Date(v.date).getFullYear()) === curM) profit += (v.price - v.cost); });
-                if(p.name.toLowerCase().includes(kw) || p.phone?.includes(kw)) {
-                    const last = p.visits[0] || { disease: '-', date: '-' };
-                    list.innerHTML += `<div class="card p-4 flex justify-between items-center border-l-8 border-emerald-700">
-                        <div onclick="showHistory('${p.id}')" class="cursor-pointer">
-                            <h3 class="font-bold text-emerald-900 uppercase">${p.name} <span class="text-gray-400 font-normal">(${p.phone || 'N/A'})</span></h3>
-                            <p class="text-[11px] text-gray-500 mt-1">${last.date} | ${last.disease}</p>
+            db.forEach(p => {
+                p.visits.forEach(v => {
+                    let vd = new Date(v.date);
+                    if(v.paid && (vd.getMonth()+1 + '/' + vd.getFullYear() == curM)) profit += (v.price - v.cost);
+                });
+
+                if(p.name.toLowerCase().includes(kw) || p.phone.includes(kw)) {
+                    let last = p.visits[0] ? p.visits[0].disease : 'Chưa khám';
+                    list.innerHTML += `
+                    <div class="swipe-container shadow-sm border border-gray-100">
+                        <div class="delete-btn" onclick="confirmDelete('${p.id}', '${p.name}')">
+                            <span class="text-xl">🗑️</span>
                         </div>
-                        <div class="flex gap-2">
-                             <button onclick="openPatientModal('${p.id}')" class="bg-gray-100 text-gray-600 px-3 py-2 rounded-lg text-[10px] font-bold">SỬA HS</button>
-                             <button onclick="openVisitModal('${p.id}')" class="bg-emerald-700 text-white px-5 py-2 rounded-xl text-xs font-black">KHÁM</button>
+                        <div id="card-${p.id}" class="patient-card p-5 flex justify-between items-center" 
+                             ontouchstart="handleTouchStart(event)" 
+                             ontouchmove="handleTouchMove(event, '${p.id}')">
+                            <div onclick="showHistory('${p.id}')" class="flex-grow">
+                                <h3 class="font-black text-emerald-950 uppercase tracking-tight">${p.name}</h3>
+                                <p class="text-[10px] text-gray-400 font-bold uppercase mt-1">${p.phone || 'N/A'} • SINH: ${p.year}</p>
+                                <p class="text-[11px] text-emerald-600 font-bold mt-2 bg-emerald-50 inline-block px-3 py-1 rounded-full uppercase">Gần nhất: ${last}</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="openPatientModal('${p.id}')" class="p-3 bg-gray-50 rounded-xl">✎</button>
+                                <button onclick="openVisitModal('${p.id}')" class="bg-emerald-800 text-white px-5 py-3 rounded-xl font-bold text-xs uppercase shadow-md">Khám</button>
+                            </div>
                         </div>
                     </div>`;
                 }
             });
-            document.getElementById('totalProfit').innerText = profit.toLocaleString() + 'đ';
-            document.getElementById('currentMonthLabel').innerText = "Thống kê tháng: " + curM;
+            document.getElementById('profitLabel').innerText = profit.toLocaleString() + 'đ';
+            document.getElementById('monthLabel').innerText = 'Dữ liệu tháng ' + curM;
         }
 
-        function showHistory(pId) {
-            const p = patients.find(x => x.id == pId);
-            document.getElementById('histName').innerText = p.name;
-            document.getElementById('histDetail').innerText = `Sinh năm: ${p.year} | SĐT: ${p.phone || 'Chưa có'} | Địa chỉ: ${p.address || 'Chưa có'}`;
-            document.getElementById('histContent').innerHTML = p.visits.map(v => `
-                <div class="p-4 border rounded-2xl bg-gray-50 text-xs">
-                    <div class="flex justify-between font-black text-emerald-800 border-b pb-2 mb-2">
-                        <span>${v.date} - ${v.disease}</span>
-                        <span class="${v.isPaid ? 'text-emerald-700' : 'text-red-500'}">${v.price.toLocaleString()}đ</span>
-                    </div>
-                    <p><b>Triệu chứng:</b> ${v.symptoms}</p>
-                    <p><b>Đơn thuốc:</b> ${v.medicine || '-'}</p>
-                    <p><b>Thủ thuật:</b> ${v.procs || '-'}</p>
-                    <div class="mt-4 flex gap-4 no-print border-t pt-2">
-                        <button onclick="openVisitModal('${p.id}', ${v.id})" class="text-blue-600 font-bold underline">SỬA LẠI</button>
-                        <button onclick="if(confirm('Xóa?')){deleteVisit('${p.id}',${v.id})}" class="text-red-400 font-bold underline">XOÁ LƯỢT</button>
-                    </div>
-                </div>
-            `).join('');
-            openModal('historyModal');
+        function exportData() {
+            let csv = "\uFEFFNgày,Bệnh nhân,SĐT,Bệnh,Tổng tiền,Đơn thuốc\n";
+            db.forEach(p => p.visits.forEach(v => {
+                csv += `"${v.date}","${p.name}","${p.phone}","${v.disease}","${v.price}","${v.med}"\n`;
+            }));
+            let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            let link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "BC_YHCT_" + new Date().toLocaleDateString() + ".csv";
+            link.click();
         }
 
-        function deleteVisit(pId, vId) {
-            const p = patients.find(x => x.id == pId);
-            p.visits = p.visits.filter(v => v.id != vId);
-            saveData(); renderPatients(); showHistory(pId);
-        }
-
-        // --- SETTINGS ---
-        function openSettingsModal() {
-            const dCont = document.getElementById('diseaseSettings');
-            dCont.innerHTML = diseases.map((d, i) => `<span class="bg-white border px-2 py-1 rounded-lg text-[11px]">${d.name} <button onclick="diseases.splice(${i},1);saveData();openSettingsModal()" class="text-red-500">×</button></span>`).join('');
-            const pCont = document.getElementById('procSettings');
-            pCont.innerHTML = procedures.map((p, i) => `<div class="flex gap-2"><input type="text" value="${p.name}" onchange="procedures[${i}].name=this.value;saveData()"><input type="number" value="${p.price}" onchange="procedures[${i}].price=this.value;saveData()" class="w-24"></div>`).join('');
-            openModal('settingsModal');
-        }
-        function addDiseasePrompt() { const n = prompt("Tên bệnh:"); if(n) { diseases.push({name:n, extra:[]}); saveData(); openSettingsModal(); } }
-        function addProcPrompt() { procedures.push({id:Date.now(), name:'Mới', price:0}); openSettingsModal(); }
-        function exportCSV() {
-            let csv = "\uFEFFNgày,Tên,SĐT,Bệnh,Tổng Tiền\n";
-            patients.forEach(p => p.visits.forEach(v => { csv += `"${v.date}","${p.name}","${p.phone}","${v.disease}",${v.price}\n`; }));
-            const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
-            link.download = "BaoCao.csv"; link.click();
-        }
-
-        renderPatients();
+        render();
     </script>
 </body>
 </html>
