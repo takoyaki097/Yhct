@@ -3,274 +3,344 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QUẢN LÝ PHÒNG KHÁM YHCT</title>
+    <title>YHCT Pro - Bản Đầy Đủ Nhất</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root { --emerald-dark: #064e3b; --emerald-light: #ecfdf5; }
-        body { background-color: #f3f4f6; font-family: -apple-system, sans-serif; overflow-x: hidden; }
-        
-        /* Hiệu ứng vuốt để xóa */
-        .swipe-container { position: relative; overflow: hidden; border-radius: 20px; margin-bottom: 1rem; background: #ef4444; }
-        .patient-card { 
-            background: white; 
-            position: relative; 
-            z-index: 2; 
-            transition: transform 0.3s ease; 
-            cursor: grab;
-            touch-action: pan-y;
-        }
-        .delete-btn { 
-            position: absolute; 
-            right: 0; 
-            top: 0; 
-            bottom: 0; 
-            width: 80px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            color: white; 
-            font-weight: bold;
-            z-index: 1;
-        }
-
-        /* Các style giữ nguyên từ bản cũ */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px); }
+        body { background-color: #f0f2f5; font-family: -apple-system, system-ui, sans-serif; padding-bottom: 40px; }
+        #mainHeader { position: relative; overflow: hidden; background-color: #064e3b; background-size: cover; background-position: center; border-radius: 0 0 40px 40px; min-height: 180px; display: flex; align-items: flex-end; }
+        #headerOverlay { position: absolute; inset: 0; background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.8)); z-index: 1; }
+        #headerContent { position: relative; z-index: 2; width: 100%; padding: 40px; }
+        .swipe-container { position: relative; overflow: hidden; border-radius: 24px; margin-bottom: 12px; background: #be123c; }
+        .patient-card { background: white; position: relative; z-index: 2; transition: 0.2s ease-out; touch-action: pan-y; }
+        .delete-btn { position: absolute; right: 0; top: 0; bottom: 0; width: 80px; display: flex; align-items: center; justify-content: center; color: white; z-index: 1; font-weight: bold; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 100; align-items: center; justify-content: center; padding: 15px; backdrop-filter: blur(12px); }
         .modal.active { display: flex; }
-        input, textarea { border: 1px solid #d1d5db; border-radius: 12px; padding: 15px; width: 100%; font-size: 17px; outline: none; }
-        .btn-tag { padding: 8px 14px; border-radius: 10px; border: 1px solid #e5e7eb; font-size: 14px; background: white; margin: 3px; }
-        .btn-tag.active { background: #065f46; color: white; border-color: #065f46; }
+        input, textarea, select { border: 1px solid #e2e8f0; border-radius: 16px; padding: 14px; width: 100%; font-size: 16px; outline: none; transition: 0.2s; background: white; }
+        input:focus { border-color: #059669; box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1); }
+        .section-box { background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 24px; padding: 20px; margin-bottom: 16px; }
+        .label-mini { font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 10px; display: block; letter-spacing: 0.8px; }
+        .tag-btn { padding: 10px 16px; border-radius: 12px; border: 1px solid #e2e8f0; font-size: 14px; background: white; margin: 4px; display: inline-block; transition: 0.1s; color: #334155; cursor: pointer; }
+        .tag-btn.active { background: #059669; color: white; border-color: #059669; font-weight: 600; }
     </style>
 </head>
-<body class="p-4 md:p-8">
-    <div class="max-w-2xl mx-auto">
-        <div class="bg-emerald-900 text-white p-6 rounded-[25px] mb-6 shadow-xl flex justify-between items-center">
-            <div>
-                <h1 class="text-xl font-black text-yellow-400">YHCT iPAD PRO</h1>
-                <p id="monthLabel" class="text-[10px] opacity-70 font-bold uppercase mt-1"></p>
-            </div>
-            <div class="text-right">
-                <p id="profitLabel" class="text-2xl font-black text-green-400">0đ</p>
-                <p class="text-[9px] uppercase opacity-50 font-bold">Lợi nhuận</p>
+<body>
+
+    <div class="max-w-3xl mx-auto">
+        <div id="mainHeader" class="text-white shadow-2xl">
+            <div id="headerOverlay"></div>
+            <div id="headerContent" class="flex justify-between items-end">
+                <div>
+                    <h1 class="text-3xl font-black text-yellow-400 tracking-tighter uppercase">Phòng Khám YHCT</h1>
+                    <p id="monthLabel" class="text-xs opacity-80 font-bold uppercase mt-2 tracking-widest"></p>
+                </div>
+                <div class="text-right">
+                    <p id="profitLabel" class="text-4xl font-black text-green-400">0đ</p>
+                    <p class="text-[10px] uppercase opacity-60 font-black">Lợi nhuận thực tế</p>
+                </div>
             </div>
         </div>
 
-        <div class="flex gap-2 mb-6">
-            <button onclick="openPatientModal()" class="flex-grow bg-emerald-700 text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-transform uppercase text-sm">+ Bệnh nhân mới</button>
-            <button onclick="exportData()" class="bg-white border-2 border-emerald-800 text-emerald-800 px-4 rounded-2xl font-bold text-xs shadow-sm">XUẤT FILE</button>
+        <div class="px-6 mt-8">
+            <div class="grid grid-cols-4 gap-3 mb-8">
+                <button onclick="openPatientModal()" class="col-span-2 bg-emerald-800 text-white py-5 rounded-3xl font-black shadow-lg uppercase text-sm active:scale-95">+ Bệnh nhân mới</button>
+                <button onclick="exportData()" class="bg-white border-2 border-emerald-900 text-emerald-900 rounded-3xl font-black text-xs uppercase">Xuất File</button>
+                <button onclick="openSettings()" class="bg-slate-900 text-white rounded-3xl font-bold text-2xl">⚙️</button>
+            </div>
+            <input type="text" id="search" oninput="render()" placeholder="Tìm tên hoặc SĐT..." class="mb-6 shadow-md border-slate-200 py-5 px-6">
+            <div id="list" class="space-y-1"></div>
         </div>
-
-        <input type="text" id="search" oninput="render()" placeholder="Tìm tên hoặc số điện thoại..." class="mb-6 shadow-sm">
-        
-        <p class="text-[10px] text-gray-400 mb-2 italic ml-2">Vuốt sang trái để xóa bệnh nhân</p>
-        <div id="list" class="space-y-0"></div>
     </div>
 
-    <div id="pModal" class="modal"><div class="bg-white w-full max-w-md p-6 rounded-3xl shadow-2xl">
-        <h2 class="font-bold text-emerald-900 mb-4 uppercase border-b pb-2">Hồ sơ bệnh nhân</h2>
-        <input type="hidden" id="editId">
-        <div class="space-y-3">
-            <input type="text" id="pName" placeholder="Họ tên *">
-            <div class="flex gap-2"><input type="number" id="pYear" placeholder="Năm sinh *"><input type="tel" id="pPhone" placeholder="SĐT"></div>
-            <input type="text" id="pAddress" placeholder="Địa chỉ">
+    <div id="vModal" class="modal">
+        <div class="bg-white w-full max-w-2xl p-8 rounded-[40px] shadow-2xl overflow-y-auto max-h-[96vh]">
+            <div class="flex justify-between items-center border-b pb-5 mb-6">
+                <h2 class="font-black text-2xl text-emerald-900 uppercase">Phiếu Khám Chuyên Khoa</h2>
+                <button onclick="closeModals()" class="text-4xl text-slate-300">&times;</button>
+            </div>
+            
+            <input type="hidden" id="vPid">
+            <div class="space-y-6">
+                <div class="section-box bg-blue-50/50 border-blue-100">
+                    <span class="label-mini text-blue-700">❤ Chỉ số sinh tồn</span>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-400 block mb-1">HUYẾT ÁP (mmHg)</label>
+                            <div class="flex items-center bg-white border rounded-xl overflow-hidden h-[48px]">
+                                <input type="number" id="vBpSys" value="120" class="border-none p-0 text-center font-bold w-full text-sm">
+                                <span class="text-slate-300">/</span>
+                                <input type="number" id="vBpDia" value="70" class="border-none p-0 text-center font-bold w-full text-sm">
+                            </div>
+                        </div>
+                        <div><label class="text-[10px] font-bold text-slate-400 block mb-1">MẠCH (L/p)</label><input type="number" id="vPulse" class="h-[48px] text-center font-bold text-sm"></div>
+                        <div><label class="text-[10px] font-bold text-slate-400 block mb-1">BMI</label><input type="number" id="vBmi" step="0.1" class="h-[48px] text-center font-bold text-sm"></div>
+                    </div>
+                </div>
+
+                <div class="flex gap-4">
+                    <div class="w-1/3"><span class="label-mini">Ngày khám</span><input type="date" id="vDate"></div>
+                    <div class="w-2/3"><span class="label-mini">Chẩn đoán (Bệnh danh)</span><input list="diseaseOptions" id="vDiseaseInput" onchange="loadDiseasePresets()"></div>
+                </div>
+
+                <div class="section-box bg-yellow-50 border-yellow-100">
+                    <span class="label-mini text-yellow-700">★ Diễn biến & Triệu chứng đặc biệt</span>
+                    <div id="specialTagsBox" class="flex flex-wrap mb-4 hidden border-b border-yellow-100 pb-3"></div>
+                    <textarea id="vSpecial" placeholder="Nhập thêm triệu chứng riêng biệt..." rows="1" class="text-sm bg-white/70"></textarea>
+                </div>
+
+                <div class="space-y-3">
+                    <span class="label-mini">Tứ Chẩn</span>
+                    <div class="p-4 bg-slate-50 rounded-2xl"><span class="text-[10px] font-black text-emerald-800 block mb-2">1. VỌNG:</span><div id="boxVong" class="flex flex-wrap"></div><input type="text" id="vVongExtra" class="text-xs mt-2 bg-transparent border-dashed border-b" placeholder="Ghi chú thêm..."></div>
+                    <div class="p-4 bg-slate-50 rounded-2xl"><span class="text-[10px] font-black text-emerald-800 block mb-2">2. VĂN:</span><div id="boxVan" class="flex flex-wrap"></div><input type="text" id="vVanExtra" class="text-xs mt-2 bg-transparent border-dashed border-b" placeholder="Ghi chú thêm..."></div>
+                    <div class="p-4 bg-slate-50 rounded-2xl"><span class="text-[10px] font-black text-emerald-800 block mb-2">3. VẤN:</span><div id="boxVanHoi" class="flex flex-wrap"></div><input type="text" id="vVanHoiExtra" class="text-xs mt-2 bg-transparent border-dashed border-b" placeholder="Ghi chú thêm..."></div>
+                    <div class="p-4 bg-slate-50 rounded-2xl"><span class="text-[10px] font-black text-emerald-800 block mb-2">4. THIẾT:</span><div id="boxThiet" class="flex flex-wrap"></div><input type="text" id="vThietExtra" class="text-xs mt-2 bg-transparent border-dashed border-b" placeholder="Ghi chú thêm..."></div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="section-box m-0"><span class="label-mini">Thủ thuật</span><div id="vProcs" class="space-y-1 max-h-48 overflow-y-auto"></div></div>
+                    <div class="section-box m-0"><span class="label-mini">Đơn thuốc</span><textarea id="vMed" class="h-full min-h-[120px] text-sm"></textarea></div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div><span class="label-mini">Phí thu</span><input type="number" id="vPrice" oninput="calcV()" class="font-bold text-emerald-700"></div>
+                    <div><span class="label-mini text-rose-500">Giá vốn</span><input type="number" id="vCost" class="font-bold text-rose-700"></div>
+                </div>
+
+                <div class="bg-emerald-900 text-white p-6 rounded-[30px] flex justify-between items-center shadow-xl">
+                    <div><span class="label-mini text-emerald-300">Tổng thực thu</span><p class="text-4xl font-black text-yellow-400" id="vTotal">0đ</p></div>
+                    <label class="flex items-center gap-2 font-bold"><input type="checkbox" id="vPaid" checked class="w-6 h-6"> ĐÃ THU</label>
+                </div>
+
+                <button onclick="saveVisit()" class="w-full py-6 bg-emerald-700 text-white rounded-3xl font-black uppercase text-xl shadow-lg active:scale-95">Lưu bệnh án</button>
+            </div>
         </div>
-        <div class="flex gap-2 mt-6">
-            <button onclick="closeModals()" class="flex-1 py-3 bg-gray-100 rounded-xl font-bold text-gray-400">ĐÓNG</button>
-            <button onclick="savePatient()" class="flex-1 py-3 bg-emerald-800 text-white rounded-xl font-bold shadow-md">LƯU LẠI</button>
+    </div>
+
+    <div id="sModal" class="modal">
+        <div class="bg-white w-full max-w-2xl p-10 rounded-[45px] shadow-2xl overflow-y-auto max-h-[92vh]">
+            <h2 class="font-black text-2xl text-center uppercase mb-8 pb-4 border-b">Cấu hình Hệ thống</h2>
+            
+            <div class="space-y-10">
+                <section>
+                    <span class="label-mini text-emerald-600">1. Hình nền tiêu đề</span>
+                    <input type="file" id="bgInput" onchange="updateHeaderBg()" class="mt-2">
+                </section>
+
+                <section>
+                    <span class="label-mini text-emerald-600">2. Nút chọn nhanh Tứ chẩn (cách nhau bằng dấu phẩy)</span>
+                    <div class="grid grid-cols-1 gap-4 mt-3">
+                        <div><label class="text-[10px] font-bold text-slate-400 uppercase">Vọng:</label><textarea id="editVong" class="h-20 text-xs mt-1"></textarea></div>
+                        <div><label class="text-[10px] font-bold text-slate-400 uppercase">Văn:</label><textarea id="editVan" class="h-20 text-xs mt-1"></textarea></div>
+                        <div><label class="text-[10px] font-bold text-slate-400 uppercase">Vấn:</label><textarea id="editVanHoi" class="h-20 text-xs mt-1"></textarea></div>
+                        <div><label class="text-[10px] font-bold text-slate-400 uppercase">Thiết:</label><textarea id="editThiet" class="h-20 text-xs mt-1"></textarea></div>
+                    </div>
+                </section>
+
+                <section>
+                    <span class="label-mini text-emerald-600">3. Thư viện Bệnh & Triệu chứng đặc biệt</span>
+                    <div id="setDiseases" class="space-y-2 mb-4"></div>
+                    <div class="bg-slate-50 p-6 rounded-3xl space-y-3 border">
+                        <input type="text" id="newDisName" placeholder="Tên bệnh..." class="text-sm">
+                        <textarea id="newDisSym" placeholder="Triệu chứng đặc biệt của bệnh này (cách nhau dấu phẩy)..." class="text-sm"></textarea>
+                        <button onclick="addItem('diseases')" class="w-full bg-emerald-700 text-white py-4 rounded-2xl font-black text-xs uppercase">Thêm Bệnh</button>
+                    </div>
+                </section>
+
+                <section>
+                    <span class="label-mini text-emerald-600">4. Danh sách Thủ thuật & Đơn giá</span>
+                    <div id="setProcs" class="space-y-2 mb-4"></div>
+                    <div class="flex gap-3">
+                        <input type="text" id="newProcName" placeholder="Tên thủ thuật..." class="text-sm">
+                        <input type="number" id="newProcPrice" placeholder="Giá..." class="text-sm w-32">
+                        <button onclick="addItem('procs')" class="bg-emerald-600 text-white px-8 rounded-2xl font-bold">+</button>
+                    </div>
+                </section>
+            </div>
+            
+            <div class="flex gap-4 mt-12">
+                <button onclick="saveAllConfigs()" class="flex-grow py-5 bg-emerald-800 text-white rounded-3xl font-black uppercase">Lưu toàn bộ cài đặt</button>
+                <button onclick="closeModals()" class="px-10 py-5 bg-slate-100 rounded-3xl font-bold text-slate-400">Đóng</button>
+            </div>
         </div>
+    </div>
+
+    <div id="pModal" class="modal"><div class="bg-white w-full max-w-md p-10 rounded-[40px] shadow-2xl">
+        <h2 class="font-black mb-6 uppercase text-center text-emerald-900">Thông tin bệnh nhân</h2>
+        <input type="hidden" id="editId"><input type="text" id="pName" placeholder="Họ và tên *"><div class="flex gap-3 my-4"><input type="number" id="pYear" placeholder="Năm sinh"><input type="tel" id="pPhone" placeholder="SĐT"></div><input type="text" id="pAddress" placeholder="Địa chỉ">
+        <div class="flex gap-3 mt-8"><button onclick="closeModals()" class="flex-1 py-5 text-slate-400 font-bold uppercase">Hủy</button><button onclick="savePatient()" class="flex-1 py-5 bg-emerald-800 text-white rounded-3xl font-black uppercase shadow-lg">Lưu hồ sơ</button></div>
+    </div></div>
+    
+    <div id="hModal" class="modal"><div class="bg-white w-full max-w-2xl p-10 rounded-[40px] overflow-y-auto max-h-[92vh]">
+        <div class="flex justify-between items-center mb-8 border-b pb-4"><h2 id="hName" class="font-black text-2xl uppercase text-emerald-900"></h2><button onclick="closeModals()" class="text-4xl text-slate-300">&times;</button></div>
+        <div id="hContent" class="space-y-8"></div>
     </div></div>
 
-    <div id="vModal" class="modal"><div class="bg-white w-full max-w-xl p-6 rounded-3xl shadow-2xl overflow-y-auto max-h-[90vh]">
-        <h2 class="font-bold text-emerald-900 mb-4 uppercase border-b pb-2">Phiếu khám bệnh</h2>
-        <input type="hidden" id="vPid">
-        <div class="space-y-4">
-            <div class="flex gap-2"><input type="date" id="vDate" class="flex-1"><input type="text" id="vDisease" placeholder="Chẩn đoán..." class="flex-[2]"></div>
-            <div id="tagBox" class="p-3 bg-gray-50 rounded-2xl border"></div>
-            <textarea id="vMed" placeholder="Đơn thuốc, huyệt vị..." rows="3"></textarea>
-            <div class="grid grid-cols-2 gap-3">
-                <input type="number" id="vPrice" placeholder="Giá thu" oninput="calcV()"><input type="number" id="vCost" placeholder="Giá vốn">
-            </div>
-            <div class="bg-emerald-900 text-white p-5 rounded-2xl flex justify-between items-center shadow-lg">
-                <span class="text-2xl font-black text-yellow-400" id="vTotal">0đ</span>
-                <label class="flex items-center gap-2 font-bold"><input type="checkbox" id="vPaid" checked class="w-5 h-5"> ĐÃ THU</label>
-            </div>
-        </div>
-        <button onclick="saveVisit()" class="w-full mt-6 py-4 bg-emerald-700 text-white rounded-2xl font-bold shadow-lg">HOÀN TẤT LƯU</button>
-    </div></div>
-
-    <div id="hModal" class="modal"><div class="bg-white w-full max-w-xl p-6 rounded-3xl shadow-2xl overflow-y-auto max-h-[90vh]">
-        <div class="flex justify-between items-start mb-4 border-b pb-2"><h2 id="hName" class="font-bold text-emerald-900 uppercase"></h2><button onclick="closeModals()" class="text-2xl text-gray-400">✕</button></div>
-        <div id="hContent" class="space-y-4"></div>
-    </div></div>
+    <datalist id="diseaseOptions"></datalist>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('yhct_db_v4') || '[]');
-        const sampleTags = ['Đau cổ vai gáy', 'Thoái hóa cột sống', 'Mất ngủ', 'Tê bì', 'Lưỡi đỏ', 'Rêu vàng'];
+        const defaultTC = { vong: ['Thần tỉnh', 'Sắc tươi'], van: ['Tiếng vang'], vanHoi: ['Ăn được'], thiet: ['Mạch Hoạt'] };
+        let db = JSON.parse(localStorage.getItem('yhct_db_final_v6') || '[]');
+        let config = JSON.parse(localStorage.getItem('yhct_cfg_final_v6')) || { headerBg: '', procs: [{name: 'Châm cứu', price: 100000}], diseases: [], tuChan: defaultTC };
 
-        function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
-        
-        // --- XỬ LÝ VUỐT ĐỂ XÓA ---
-        let startX = 0;
-        function handleTouchStart(e) { startX = e.touches[0].clientX; }
-        function handleTouchMove(e, id) {
-            let moveX = e.touches[0].clientX;
-            let diff = startX - moveX;
-            let card = document.getElementById('card-' + id);
-            if (diff > 50) { // Vuốt sang trái
-                card.style.transform = `translateX(-80px)`;
-            } else if (diff < -20) { // Vuốt sang phải để đóng
-                card.style.transform = `translateX(0px)`;
-            }
+        function saveConfig() { localStorage.setItem('yhct_cfg_final_v6', JSON.stringify(config)); renderSettings(); applyDiseaseOptions(); }
+
+        // --- HỆ THỐNG CÀI ĐẶT ---
+        function openSettings() {
+            document.getElementById('editVong').value = config.tuChan.vong.join(', ');
+            document.getElementById('editVan').value = config.tuChan.van.join(', ');
+            document.getElementById('editVanHoi').value = config.tuChan.vanHoi.join(', ');
+            document.getElementById('editThiet').value = config.tuChan.thiet.join(', ');
+            renderSettings();
+            document.getElementById('sModal').classList.add('active');
         }
 
-        function confirmDelete(id, name) {
-            if (confirm(`⚠️ Bạn có chắc chắn muốn XÓA VĨNH VIỄN bệnh nhân: ${name.toUpperCase()}?\n\nHành động này không thể hoàn tác!`)) {
-                db = db.filter(x => x.id != id);
-                localStorage.setItem('yhct_db_v4', JSON.stringify(db));
-                render();
+        function renderSettings() {
+            document.getElementById('setDiseases').innerHTML = config.diseases.map((d, i) => `
+                <div class="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border text-sm font-bold">
+                    <span>${d.name}</span>
+                    <button onclick="removeItem('diseases', ${i})" class="text-red-500 font-black">Xóa</button>
+                </div>`).join('');
+            document.getElementById('setProcs').innerHTML = config.procs.map((p, i) => `
+                <div class="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border text-sm font-bold">
+                    <span>${p.name} (${p.price.toLocaleString()}đ)</span>
+                    <button onclick="removeItem('procs', ${i})" class="text-red-500 font-black">Xóa</button>
+                </div>`).join('');
+        }
+
+        function addItem(type) {
+            if(type === 'procs') {
+                const name = document.getElementById('newProcName').value;
+                const price = parseInt(document.getElementById('newProcPrice').value) || 0;
+                if(name) config.procs.push({name, price});
             } else {
-                // Nếu không xóa thì đóng thanh trượt lại
-                document.getElementById('card-' + id).style.transform = `translateX(0px)`;
+                const name = document.getElementById('newDisName').value;
+                const sym = document.getElementById('newDisSym').value;
+                if(name) config.diseases.push({name, sym});
             }
+            saveConfig();
+        }
+        function removeItem(t, i) { config[t].splice(i, 1); saveConfig(); }
+
+        function saveAllConfigs() {
+            config.tuChan.vong = document.getElementById('editVong').value.split(',').map(s=>s.trim()).filter(s=>s);
+            config.tuChan.van = document.getElementById('editVan').value.split(',').map(s=>s.trim()).filter(s=>s);
+            config.tuChan.vanHoi = document.getElementById('editVanHoi').value.split(',').map(s=>s.trim()).filter(s=>s);
+            config.tuChan.thiet = document.getElementById('editThiet').value.split(',').map(s=>s.trim()).filter(s=>s);
+            saveConfig(); closeModals();
         }
 
-        // --- CÁC HÀM CŨ GIỮ NGUYÊN ---
-        function openPatientModal(id = null) {
-            document.getElementById('editId').value = id || '';
-            if(id) {
-                let p = db.find(x => x.id == id);
-                document.getElementById('pName').value = p.name;
-                document.getElementById('pYear').value = p.year;
-                document.getElementById('pPhone').value = p.phone || '';
-                document.getElementById('pAddress').value = p.address || '';
-            } else {
-                document.querySelectorAll('#pModal input').forEach(i => i.value = '');
-            }
-            document.getElementById('pModal').classList.add('active');
-        }
-
-        function savePatient() {
-            let id = document.getElementById('editId').value;
-            let name = document.getElementById('pName').value;
-            if(!name) return alert("Vui lòng nhập tên");
-            let p = {
-                id: id || Date.now().toString(),
-                name: name,
-                year: document.getElementById('pYear').value,
-                phone: document.getElementById('pPhone').value,
-                address: document.getElementById('pAddress').value,
-                visits: id ? db.find(x => x.id == id).visits : []
-            };
-            if(id) { let i = db.findIndex(x => x.id == id); db[i] = p; }
-            else { db.unshift(p); }
-            localStorage.setItem('yhct_db_v4', JSON.stringify(db));
-            render(); closeModals();
-        }
-
+        // --- KHÁM BỆNH ---
         function openVisitModal(pid) {
             document.getElementById('vPid').value = pid;
             document.getElementById('vDate').value = new Date().toISOString().split('T')[0];
-            document.getElementById('vDisease').value = '';
-            document.getElementById('vMed').value = '';
-            document.getElementById('vPrice').value = '';
-            document.getElementById('vCost').value = '';
-            document.getElementById('tagBox').innerHTML = sampleTags.map(t => `<button class="btn-tag" onclick="this.classList.toggle('active')">${t}</button>`).join('');
-            calcV();
-            document.getElementById('vModal').classList.add('active');
+            document.querySelectorAll('#vModal input:not(#vPid):not(#vDate), #vModal textarea').forEach(i => i.value = '');
+            document.getElementById('vBpSys').value = "120"; document.getElementById('vBpDia').value = "70";
+            
+            const renderTC = (id, list) => { document.getElementById(id).innerHTML = list.map(item => `<button class="tag-btn" onclick="this.classList.toggle('active')">${item}</button>`).join(''); };
+            renderTC('boxVong', config.tuChan.vong); renderTC('boxVan', config.tuChan.van); renderTC('boxVanHoi', config.tuChan.vanHoi); renderTC('boxThiet', config.tuChan.thiet);
+            
+            document.getElementById('vProcs').innerHTML = config.procs.map(p => `
+                <div class="flex items-center gap-2 p-3 bg-slate-50 rounded-xl" onclick="toggleVProc(this)">
+                    <input type="checkbox" class="v-proc-check w-5 h-5" data-price="${p.price}" value="${p.name}" onclick="event.stopPropagation();calcV()">
+                    <span class="text-[10px] font-bold uppercase text-slate-600">${p.name}</span>
+                </div>`).join('');
+            
+            document.getElementById('specialTagsBox').classList.add('hidden');
+            calcV(); document.getElementById('vModal').classList.add('active');
         }
 
-        function calcV() {
-            let p = parseInt(document.getElementById('vPrice').value) || 0;
-            document.getElementById('vTotal').innerText = p.toLocaleString() + 'đ';
+        function loadDiseasePresets() {
+            const val = document.getElementById('vDiseaseInput').value;
+            const dis = config.diseases.find(d => d.name === val);
+            const box = document.getElementById('specialTagsBox');
+            if(dis && dis.sym) {
+                box.innerHTML = dis.sym.split(',').map(s => `<button class="tag-btn" style="border-color:#fde047" onclick="document.getElementById('vSpecial').value+=(document.getElementById('vSpecial').value?', ':'')+this.innerText.trim()">${s.trim()}</button>`).join('');
+                box.classList.remove('hidden');
+            } else box.classList.add('hidden');
         }
 
         function saveVisit() {
-            let pid = document.getElementById('vPid').value;
-            let activeTags = Array.from(document.querySelectorAll('#tagBox .btn-tag.active')).map(b => b.innerText);
-            let v = {
-                id: Date.now(),
-                date: document.getElementById('vDate').value,
-                disease: document.getElementById('vDisease').value,
-                tags: activeTags.join(', '),
-                med: document.getElementById('vMed').value,
-                price: parseInt(document.getElementById('vPrice').value) || 0,
-                cost: parseInt(document.getElementById('vCost').value) || 0,
-                paid: document.getElementById('vPaid').checked
+            const pid = document.getElementById('vPid').value;
+            const getTC = (boxId, exId) => {
+                let tags = Array.from(document.querySelectorAll(`#${boxId} .tag-btn.active`)).map(b => b.innerText).join(', ');
+                let extra = document.getElementById(exId).value;
+                return [tags, extra].filter(x => x).join('; ');
             };
-            let i = db.findIndex(x => x.id == pid);
-            db[i].visits.unshift(v);
-            localStorage.setItem('yhct_db_v4', JSON.stringify(db));
-            render(); closeModals();
-        }
+            let price = parseInt(document.getElementById('vPrice').value) || 0;
+            document.querySelectorAll('.v-proc-check:checked').forEach(c => price += parseInt(c.dataset.price));
 
-        function showHistory(pid) {
-            let p = db.find(x => x.id == pid);
-            document.getElementById('hName').innerText = p.name;
-            document.getElementById('hContent').innerHTML = p.visits.map(v => `
-                <div class="p-4 bg-gray-50 rounded-2xl border shadow-sm">
-                    <div class="flex justify-between font-bold text-emerald-800 text-xs mb-2 border-b border-dashed pb-2">
-                        <span>${v.date}</span><span>${v.price.toLocaleString()}đ</span>
-                    </div>
-                    <p class="font-bold text-sm uppercase">${v.disease}</p>
-                    <p class="text-xs text-gray-500 italic mt-1">${v.tags}</p>
-                    <p class="text-xs mt-2 bg-white p-2 rounded-lg border">ĐƠN: ${v.med || '-'}</p>
-                </div>
-            `).join('') || '<p class="text-center text-gray-400 py-10">Chưa có lịch sử</p>';
-            document.getElementById('hModal').classList.add('active');
+            const v = {
+                id: Date.now(), date: document.getElementById('vDate').value,
+                bp: document.getElementById('vBpSys').value + '/' + document.getElementById('vBpDia').value,
+                pulse: document.getElementById('vPulse').value, bmi: document.getElementById('vBmi').value,
+                disease: document.getElementById('vDiseaseInput').value, special: document.getElementById('vSpecial').value,
+                vong: getTC('boxVong', 'vVongExtra'), van: getTC('boxVan', 'vVanExtra'), vanHoi: getTC('boxVanHoi', 'vVanHoiExtra'), thiet: getTC('boxThiet', 'vThietExtra'),
+                procs: Array.from(document.querySelectorAll('.v-proc-check:checked')).map(c => c.value).join(', '),
+                med: document.getElementById('vMed').value, price, cost: parseInt(document.getElementById('vCost').value) || 0, paid: document.getElementById('vPaid').checked
+            };
+            
+            const i = db.findIndex(x => x.id == pid);
+            db[i].visits.unshift(v); localStorage.setItem('yhct_db_final_v6', JSON.stringify(db)); render(); closeModals();
         }
 
         function render() {
-            let list = document.getElementById('list');
-            let kw = document.getElementById('search').value.toLowerCase();
-            let profit = 0;
-            let curM = (new Date().getMonth() + 1) + '/' + new Date().getFullYear();
-            
+            const list = document.getElementById('list'); const kw = document.getElementById('search').value.toLowerCase();
+            let totalProfit = 0; let curMY = (new Date().getMonth() + 1) + '/' + new Date().getFullYear();
             list.innerHTML = '';
             db.forEach(p => {
-                p.visits.forEach(v => {
-                    let vd = new Date(v.date);
-                    if(v.paid && (vd.getMonth()+1 + '/' + vd.getFullYear() == curM)) profit += (v.price - v.cost);
-                });
-
+                p.visits.forEach(v => { if(v.paid && (new Date(v.date).getMonth()+1 + '/' + new Date(v.date).getFullYear() == curMY)) totalProfit += (v.price - v.cost); });
                 if(p.name.toLowerCase().includes(kw) || p.phone.includes(kw)) {
-                    let last = p.visits[0] ? p.visits[0].disease : 'Chưa khám';
                     list.innerHTML += `
-                    <div class="swipe-container shadow-sm border border-gray-100">
-                        <div class="delete-btn" onclick="confirmDelete('${p.id}', '${p.name}')">
-                            <span class="text-xl">🗑️</span>
-                        </div>
-                        <div id="card-${p.id}" class="patient-card p-5 flex justify-between items-center" 
-                             ontouchstart="handleTouchStart(event)" 
-                             ontouchmove="handleTouchMove(event, '${p.id}')">
-                            <div onclick="showHistory('${p.id}')" class="flex-grow">
-                                <h3 class="font-black text-emerald-950 uppercase tracking-tight">${p.name}</h3>
-                                <p class="text-[10px] text-gray-400 font-bold uppercase mt-1">${p.phone || 'N/A'} • SINH: ${p.year}</p>
-                                <p class="text-[11px] text-emerald-600 font-bold mt-2 bg-emerald-50 inline-block px-3 py-1 rounded-full uppercase">Gần nhất: ${last}</p>
-                            </div>
+                    <div class="swipe-container shadow-sm">
+                        <div class="delete-btn" onclick="confirmDelete('${p.id}')">XÓA</div>
+                        <div id="card-${p.id}" class="patient-card p-6 flex justify-between items-center" ontouchstart="sX=event.touches[0].clientX" ontouchmove="if(sX-event.touches[0].clientX>70)this.style.transform='translateX(-80px)';else if(sX-event.touches[0].clientX<-30)this.style.transform='translateX(0)'">
+                            <div onclick="showHistory('${p.id}')" class="flex-grow cursor-pointer"><h3 class="font-black text-xl uppercase text-slate-900">${p.name}</h3><p class="text-xs font-bold text-slate-400 mt-1 uppercase">${p.phone || 'N/A'} • SN ${p.year || 'N/A'}</p></div>
                             <div class="flex gap-2">
-                                <button onclick="openPatientModal('${p.id}')" class="p-3 bg-gray-50 rounded-xl">✎</button>
-                                <button onclick="openVisitModal('${p.id}')" class="bg-emerald-800 text-white px-5 py-3 rounded-xl font-bold text-xs uppercase shadow-md">Khám</button>
+                                <button onclick="openPatientModal('${p.id}')" class="p-5 bg-slate-50 rounded-3xl text-slate-400">✎</button>
+                                <button onclick="openVisitModal('${p.id}')" class="bg-emerald-800 text-white px-8 py-5 rounded-3xl font-black text-xs uppercase shadow-lg">Khám</button>
                             </div>
                         </div>
                     </div>`;
                 }
             });
-            document.getElementById('profitLabel').innerText = profit.toLocaleString() + 'đ';
-            document.getElementById('monthLabel').innerText = 'Dữ liệu tháng ' + curM;
+            document.getElementById('profitLabel').innerText = totalProfit.toLocaleString() + 'đ';
+            document.getElementById('monthLabel').innerText = 'Dữ liệu tháng ' + curMY;
         }
 
+        function showHistory(pid) {
+            const p = db.find(x => x.id == pid); document.getElementById('hName').innerText = p.name;
+            document.getElementById('hContent').innerHTML = p.visits.map(v => `
+                <div class="p-6 bg-slate-50 rounded-[35px] border relative shadow-sm">
+                    <div class="flex justify-between text-[10px] font-black uppercase text-emerald-800 mb-4"><span>📅 ${v.date}</span><span class="bg-white px-3 py-1 rounded-full">Lãi: ${(v.price-v.cost).toLocaleString()}đ</span></div>
+                    <div class="flex gap-3 mb-4 text-[10px] font-bold text-blue-600 bg-blue-100/50 p-2 rounded-xl">
+                        <span>HA: ${v.bp || '120/70'}</span><span>Mạch: ${v.pulse || '-'}</span><span>BMI: ${v.bmi || '-'}</span>
+                    </div>
+                    <p class="font-black text-xl uppercase text-slate-900 border-b pb-2 mb-3">${v.disease || 'Chưa phân bệnh'}</p>
+                    <div class="text-[12px] space-y-2 text-slate-600 italic">
+                        ${v.special ? `<p class="text-yellow-700 not-italic font-bold">★ ${v.special}</p>` : ''}
+                        <p><b>Vọng:</b> ${v.vong || '-'}</p><p><b>Văn:</b> ${v.van || '-'}</p><p><b>Vấn:</b> ${v.vanHoi || '-'}</p><p><b>Thiết:</b> ${v.thiet || '-'}</p>
+                    </div>
+                    <p class="text-[11px] font-black text-blue-800 mt-4 uppercase">Thủ thuật: ${v.procs || 'Không'}</p>
+                    <div class="mt-4 bg-emerald-900 text-white p-4 rounded-2xl text-sm">💊 Đơn thuốc: ${v.med || '-'}</div>
+                </div>`).join('') || '<p class="text-center py-10 opacity-30 uppercase font-black">Chưa có lịch sử</p>';
+            document.getElementById('hModal').classList.add('active');
+        }
+
+        function updateHeaderBg() { const f = document.getElementById('bgInput').files[0]; const r = new FileReader(); r.onloadend = () => { config.headerBg = r.result; saveConfig(); applyHeaderStyle(); }; if(f) r.readAsDataURL(f); }
+        function applyHeaderStyle() { if(config.headerBg) document.getElementById('mainHeader').style.backgroundImage = `url(${config.headerBg})`; }
+        function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
+        function toggleVProc(div) { const cb = div.querySelector('input'); cb.checked = !cb.checked; calcV(); }
+        function calcV() { let t = parseInt(document.getElementById('vPrice').value) || 0; document.querySelectorAll('.v-proc-check:checked').forEach(c => t += parseInt(c.dataset.price)); document.getElementById('vTotal').innerText = t.toLocaleString() + 'đ'; }
+        function applyDiseaseOptions() { document.getElementById('diseaseOptions').innerHTML = config.diseases.map(d => `<option value="${d.name}">`).join(''); }
+        function openPatientModal(id = null) { document.getElementById('editId').value = id || ''; if(id) { let p = db.find(x => x.id==id); document.getElementById('pName').value = p.name; document.getElementById('pYear').value = p.year; document.getElementById('pPhone').value = p.phone; document.getElementById('pAddress').value = p.address; } else { document.querySelectorAll('#pModal input').forEach(i => i.value=''); } document.getElementById('pModal').classList.add('active'); }
+        function savePatient() { let id = document.getElementById('editId').value; let name = document.getElementById('pName').value; if(!name) return alert("Nhập tên!"); let p = { id: id || Date.now().toString(), name, year: document.getElementById('pYear').value, phone: document.getElementById('pPhone').value, address: document.getElementById('pAddress').value, visits: id ? db.find(x => x.id==id).visits : [] }; if(id) db[db.findIndex(x => x.id==id)] = p; else db.unshift(p); localStorage.setItem('yhct_db_final_v6', JSON.stringify(db)); render(); closeModals(); }
+        function confirmDelete(id) { if(confirm('Xóa vĩnh viễn?')) { db = db.filter(x => x.id != id); localStorage.setItem('yhct_db_final_v6', JSON.stringify(db)); render(); } }
         function exportData() {
-            let csv = "\uFEFFNgày,Bệnh nhân,SĐT,Bệnh,Tổng tiền,Đơn thuốc\n";
-            db.forEach(p => p.visits.forEach(v => {
-                csv += `"${v.date}","${p.name}","${p.phone}","${v.disease}","${v.price}","${v.med}"\n`;
-            }));
-            let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            let link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = "BC_YHCT_" + new Date().toLocaleDateString() + ".csv";
-            link.click();
+            let csv = "\uFEFFNgày,Bệnh nhân,Huyết áp,Mạch,BMI,Bệnh danh,Lợi nhuận,Đơn thuốc\n";
+            db.forEach(p => p.visits.forEach(v => { csv += `"${v.date}","${p.name}","${v.bp}","${v.pulse}","${v.bmi}","${v.disease}","${v.price - v.cost}","${v.med}"\n`; }));
+            const b = new Blob([csv], { type: 'text/csv' }); const l = document.createElement("a"); l.href = URL.createObjectURL(b); l.download = "BaoCao.csv"; l.click();
         }
 
-        render();
+        applyHeaderStyle(); applyDiseaseOptions(); render();
     </script>
 </body>
 </html>
