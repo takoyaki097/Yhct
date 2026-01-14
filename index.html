@@ -215,9 +215,11 @@
         .days-input { width: 60px; text-align: center; padding: 5px; border: 1px solid #d7ccc8; border-radius: 6px; }
         
         .time-btn { 
-            padding: 4px 8px; border: 1px solid #d7ccc8; border-radius: 8px; 
-            font-size: 11px; font-weight: 600; background: #fff; cursor: pointer;
+            padding: 8px 12px; border: 1px solid #d7ccc8; border-radius: 8px; 
+            font-size: 14px; font-weight: 600; background: #fff; cursor: pointer;
             transition: all 0.2s;
+            min-width: 60px;
+            text-align: center;
         }
         .time-btn.active { background: #5d4037; color: white; border-color: #5d4037; }
         
@@ -276,6 +278,123 @@
             padding: 8px;
             border: 1px solid #d7ccc8;
             border-radius: 6px;
+            min-width: 0;
+        }
+        
+        /* NEW STYLES FOR SETTINGS SCROLLABLE TABLES */
+        .settings-scrollable-container {
+            overflow-x: auto;
+            max-width: 100%;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+        }
+        
+        .settings-medicine-table {
+            min-width: 700px;
+            border-collapse: collapse;
+            width: 100%;
+        }
+        
+        .settings-medicine-table th,
+        .settings-medicine-table td {
+            padding: 8px 12px;
+            border: 1px solid #e0e0e0;
+            text-align: left;
+            font-size: 14px;
+        }
+        
+        .settings-medicine-table th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+            color: #5d4037;
+        }
+        
+        .settings-medicine-table input {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid #d7ccc8;
+            border-radius: 4px;
+            font-size: 14px;
+            min-width: 0;
+        }
+        
+        .settings-medicine-table .small-input {
+            width: 80px;
+            min-width: 80px;
+        }
+        
+        /* NEW STYLES FOR VISIT MEDICINE CONTROLS */
+        .visit-medicine-container {
+            overflow-x: auto;
+            max-width: 100%;
+            padding-bottom: 10px;
+        }
+        
+        .visit-medicine-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            min-width: 800px;
+        }
+        
+        .visit-medicine-row input {
+            padding: 10px 12px;
+            border: 1px solid #d7ccc8;
+            border-radius: 6px;
+            font-size: 14px;
+            min-width: 0;
+        }
+        
+        .visit-medicine-row .med-name {
+            flex: 2;
+            min-width: 150px;
+        }
+        
+        .visit-medicine-row .med-qty {
+            width: 100px;
+            min-width: 100px;
+        }
+        
+        .visit-medicine-row .med-days {
+            width: 90px;
+            min-width: 90px;
+        }
+        
+        .visit-medicine-row .med-price {
+            width: 120px;
+            min-width: 120px;
+        }
+        
+        .visit-medicine-row .med-time {
+            width: 180px;
+            min-width: 180px;
+        }
+        
+        .visit-medicine-row .med-actions {
+            width: 60px;
+            min-width: 60px;
+        }
+        
+        .visit-time-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .visit-time-buttons .time-btn {
+            padding: 8px 10px;
+            font-size: 13px;
+            min-width: 50px;
+            flex: 1;
+        }
+        
+        /* SETTINGS TAB MED CONTENT */
+        .tab-med-content {
+            max-width: 100%;
+            overflow: hidden;
         }
     </style>
 </head>
@@ -397,7 +516,9 @@
                             <p class="text-[10px] uppercase font-bold text-[#8d6e63] mb-1">Bài thuốc mẫu:</p>
                             <div id="eastPresetButtons" class="whitespace-nowrap overflow-x-auto pb-1"></div>
                         </div>
-                        <div id="vMedListEast" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
+                        <div class="visit-medicine-container">
+                            <div id="vMedListEast" class="space-y-2"></div>
+                        </div>
                     </div>
                     
                     <!-- WESTERN MEDICINE SECTION -->
@@ -406,7 +527,9 @@
                             <label class="font-bold text-blue-800 serif text-lg">Tây Y (Viên)</label>
                             <button onclick="window.addMedRow('west')" class="text-[10px] bg-blue-600 text-white px-3 py-1 rounded-full">+ Thuốc</button>
                         </div>
-                        <div id="vMedListWest" class="space-y-2"></div>
+                        <div class="visit-medicine-container">
+                            <div id="vMedListWest" class="space-y-2"></div>
+                        </div>
                     </div>
                     
                     <!-- TOTAL CALCULATION -->
@@ -554,8 +677,21 @@
                             <input type="text" id="diseaseEastName" class="song-input ipad-input-fix mb-3" placeholder="Tên bài thuốc, ví dụ: Bài thuốc cảm mạo">
                         </div>
                         
-                        <div id="eastIngredientsContainer" class="space-y-2 mb-3">
-                            <!-- Ingredients will be added here dynamically -->
+                        <div class="settings-scrollable-container">
+                            <table class="settings-medicine-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tên vị thuốc</th>
+                                        <th class="small-input">Số gam</th>
+                                        <th class="small-input">Số ngày</th>
+                                        <th class="small-input">Đơn giá</th>
+                                        <th>Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="eastIngredientsContainer">
+                                    <!-- Ingredients will be added here dynamically -->
+                                </tbody>
+                            </table>
                         </div>
                         
                         <button onclick="window.addEastIngredient()" class="btn-primary text-sm px-4 py-2">+ Thêm vị thuốc</button>
@@ -563,8 +699,21 @@
                     
                     <div class="border border-blue-200 rounded-lg p-4">
                         <h3 class="font-bold text-blue-800 mb-3">Thuốc Tây Y mẫu</h3>
-                        <div id="westMedicinesContainer" class="space-y-2 mb-3">
-                            <!-- Medicines will be added here dynamically -->
+                        <div class="settings-scrollable-container">
+                            <table class="settings-medicine-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tên thuốc</th>
+                                        <th class="small-input">Số viên/ngày</th>
+                                        <th class="small-input">Số ngày</th>
+                                        <th class="small-input">Đơn giá</th>
+                                        <th>Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="westMedicinesContainer">
+                                    <!-- Medicines will be added here dynamically -->
+                                </tbody>
+                            </table>
                         </div>
                         <button onclick="window.addWestMedicine()" class="btn-primary text-sm px-4 py-2 bg-blue-600">+ Thêm thuốc Tây Y</button>
                     </div>
@@ -624,7 +773,7 @@
                     </div>
                 </div>
 
-                <div id="tabMed" class="settings-panel space-y-6 hidden">
+                <div id="tabMed" class="settings-panel space-y-6 hidden tab-med-content">
                     <div>
                         <h3 class="font-bold text-[#3e2723] mb-2 uppercase border-b pb-1 text-sm">Danh mục Bệnh</h3>
                         <div id="diseaseList" class="space-y-2 mb-3"></div>
@@ -1174,31 +1323,29 @@
         window.addEastIngredient = function() {
             const container = document.getElementById('eastIngredientsContainer');
             const index = container.children.length;
-            const div = document.createElement('div');
-            div.className = 'disease-ingredient-row';
-            div.innerHTML = `
-                <input type="text" class="east-ingredient-name" placeholder="Tên vị thuốc" value="">
-                <input type="number" class="east-ingredient-qty" placeholder="Số gam" value="10">
-                <input type="number" class="east-ingredient-days" placeholder="Số ngày" value="3">
-                <input type="number" class="east-ingredient-price" placeholder="Đơn giá" value="0">
-                <button onclick="this.parentElement.remove()" class="text-red-500 font-bold">×</button>
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input type="text" class="east-ingredient-name song-input text-sm" placeholder="Tên vị thuốc" value=""></td>
+                <td><input type="number" class="east-ingredient-qty song-input text-sm" placeholder="Số gam" value="10"></td>
+                <td><input type="number" class="east-ingredient-days song-input text-sm" placeholder="Số ngày" value="3"></td>
+                <td><input type="number" class="east-ingredient-price song-input text-sm" placeholder="Đơn giá" value="0"></td>
+                <td><button onclick="this.parentElement.parentElement.remove()" class="text-red-500 font-bold px-2">×</button></td>
             `;
-            container.appendChild(div);
+            container.appendChild(row);
         };
 
         window.addWestMedicine = function() {
             const container = document.getElementById('westMedicinesContainer');
             const index = container.children.length;
-            const div = document.createElement('div');
-            div.className = 'disease-ingredient-row';
-            div.innerHTML = `
-                <input type="text" class="west-medicine-name" placeholder="Tên thuốc" value="">
-                <input type="number" class="west-medicine-qty" placeholder="Số viên/ngày" value="2">
-                <input type="number" class="west-medicine-days" placeholder="Số ngày" value="3">
-                <input type="number" class="west-medicine-price" placeholder="Đơn giá" value="0">
-                <button onclick="this.parentElement.remove()" class="text-red-500 font-bold">×</button>
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input type="text" class="west-medicine-name song-input text-sm" placeholder="Tên thuốc" value=""></td>
+                <td><input type="number" class="west-medicine-qty song-input text-sm" placeholder="Số viên/ngày" value="2"></td>
+                <td><input type="number" class="west-medicine-days song-input text-sm" placeholder="Số ngày" value="3"></td>
+                <td><input type="number" class="west-medicine-price song-input text-sm" placeholder="Đơn giá" value="0"></td>
+                <td><button onclick="this.parentElement.parentElement.remove()" class="text-red-500 font-bold px-2">×</button></td>
             `;
-            container.appendChild(div);
+            container.appendChild(row);
         };
 
         window.editDisease = function(index) {
@@ -1220,16 +1367,15 @@
                 if (eastOption.ingredients && eastOption.ingredients.length > 0) {
                     eastOption.ingredients.forEach(ing => {
                         const container = document.getElementById('eastIngredientsContainer');
-                        const div = document.createElement('div');
-                        div.className = 'disease-ingredient-row';
-                        div.innerHTML = `
-                            <input type="text" class="east-ingredient-name" placeholder="Tên vị thuốc" value="${ing.name || ''}">
-                            <input type="number" class="east-ingredient-qty" placeholder="Số gam" value="${ing.qty || 0}">
-                            <input type="number" class="east-ingredient-days" placeholder="Số ngày" value="${ing.days || 1}">
-                            <input type="number" class="east-ingredient-price" placeholder="Đơn giá" value="${ing.price || 0}">
-                            <button onclick="this.parentElement.remove()" class="text-red-500 font-bold">×</button>
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td><input type="text" class="east-ingredient-name song-input text-sm" placeholder="Tên vị thuốc" value="${ing.name || ''}"></td>
+                            <td><input type="number" class="east-ingredient-qty song-input text-sm" placeholder="Số gam" value="${ing.qty || 0}"></td>
+                            <td><input type="number" class="east-ingredient-days song-input text-sm" placeholder="Số ngày" value="${ing.days || 1}"></td>
+                            <td><input type="number" class="east-ingredient-price song-input text-sm" placeholder="Đơn giá" value="${ing.price || 0}"></td>
+                            <td><button onclick="this.parentElement.parentElement.remove()" class="text-red-500 font-bold px-2">×</button></td>
                         `;
-                        container.appendChild(div);
+                        container.appendChild(row);
                     });
                 } else {
                     window.addEastIngredient();
@@ -1242,16 +1388,15 @@
             if (disease.rxWest && disease.rxWest.length > 0) {
                 disease.rxWest.forEach(med => {
                     const container = document.getElementById('westMedicinesContainer');
-                    const div = document.createElement('div');
-                    div.className = 'disease-ingredient-row';
-                    div.innerHTML = `
-                        <input type="text" class="west-medicine-name" placeholder="Tên thuốc" value="${med.name || ''}">
-                        <input type="number" class="west-medicine-qty" placeholder="Số viên/ngày" value="${med.qty || 0}">
-                        <input type="number" class="west-medicine-days" placeholder="Số ngày" value="${med.days || 1}">
-                        <input type="number" class="west-medicine-price" placeholder="Đơn giá" value="${med.price || 0}">
-                        <button onclick="this.parentElement.remove()" class="text-red-500 font-bold">×</button>
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><input type="text" class="west-medicine-name song-input text-sm" placeholder="Tên thuốc" value="${med.name || ''}"></td>
+                        <td><input type="number" class="west-medicine-qty song-input text-sm" placeholder="Số viên/ngày" value="${med.qty || 0}"></td>
+                        <td><input type="number" class="west-medicine-days song-input text-sm" placeholder="Số ngày" value="${med.days || 1}"></td>
+                        <td><input type="number" class="west-medicine-price song-input text-sm" placeholder="Đơn giá" value="${med.price || 0}"></td>
+                        <td><button onclick="this.parentElement.parentElement.remove()" class="text-red-500 font-bold px-2">×</button></td>
                     `;
-                    container.appendChild(div);
+                    container.appendChild(row);
                 });
             } else {
                 window.addWestMedicine();
@@ -1272,7 +1417,7 @@
             
             // Collect Eastern ingredients
             const eastIngredients = [];
-            document.querySelectorAll('#eastIngredientsContainer .disease-ingredient-row').forEach(row => {
+            document.querySelectorAll('#eastIngredientsContainer tr').forEach(row => {
                 const name = row.querySelector('.east-ingredient-name').value.trim();
                 const qty = parseInt(row.querySelector('.east-ingredient-qty').value) || 0;
                 const days = parseInt(row.querySelector('.east-ingredient-days').value) || 1;
@@ -1290,7 +1435,7 @@
             
             // Collect Western medicines
             const rxWest = [];
-            document.querySelectorAll('#westMedicinesContainer .disease-ingredient-row').forEach(row => {
+            document.querySelectorAll('#westMedicinesContainer tr').forEach(row => {
                 const name = row.querySelector('.west-medicine-name').value.trim();
                 const qty = parseInt(row.querySelector('.west-medicine-qty').value) || 0;
                 const days = parseInt(row.querySelector('.west-medicine-days').value) || 1;
@@ -1582,37 +1727,25 @@
             const data = type==='east'?currentVisit.rxEast:currentVisit.rxWest;
             
             list.innerHTML = data.map((m,i)=>`
-                <div class="flex gap-2 items-center mb-2 p-2 border rounded-lg bg-white">
-                    <button onclick="window.removeMed('${type}',${i})" class="text-red-400 font-bold px-1">×</button>
+                <div class="visit-medicine-row">
+                    <button onclick="window.removeMed('${type}',${i})" class="med-actions text-red-400 font-bold px-2">×</button>
                     <input type="text" value="${m.name}" onchange="window.updateMed('${type}',${i},'name',this.value)" 
-                           class="flex-grow text-sm font-bold p-1 border-b song-input ipad-input-fix" placeholder="Tên">
-                    <div class="flex flex-col items-center">
-                        <label class="text-[8px] text-gray-500">Số ${type==='east'?'gam':'viên'}/ngày</label>
-                        <input type="number" value="${m.qty}" onchange="window.updateMed('${type}',${i},'qty',this.value)" 
-                               class="w-12 text-center text-sm p-1 border rounded song-input ipad-input-fix">
-                    </div>
-                    <div class="flex flex-col items-center">
-                        <label class="text-[8px] text-gray-500">Số ngày</label>
-                        <input type="number" value="${m.days||1}" onchange="window.updateMedDays('${type}',${i},this.value)" 
-                               class="w-12 text-center text-sm p-1 border rounded song-input ipad-input-fix">
-                    </div>
-                    <div class="flex flex-col items-center">
-                        <label class="text-[8px] text-gray-500">Đơn giá</label>
-                        <input type="number" value="${m.price||0}" onchange="window.updateMed('${type}',${i},'price',this.value)" 
-                               class="w-16 text-right text-xs p-1 border rounded song-input ipad-input-fix">
-                    </div>
-                    <div class="w-20">
-                        <label class="text-[8px] text-gray-500 block">Cách dùng</label>
-                        <div class="flex gap-1">
+                           class="med-name song-input ipad-input-fix" placeholder="Tên thuốc">
+                    <input type="number" value="${m.qty}" onchange="window.updateMed('${type}',${i},'qty',this.value)" 
+                           class="med-qty song-input ipad-input-fix text-center" placeholder="Số lượng">
+                    <input type="number" value="${m.days||1}" onchange="window.updateMedDays('${type}',${i},this.value)" 
+                           class="med-days song-input ipad-input-fix text-center" placeholder="Ngày">
+                    <input type="number" value="${m.price||0}" onchange="window.updateMed('${type}',${i},'price',this.value)" 
+                           class="med-price song-input ipad-input-fix text-right" placeholder="Đơn giá">
+                    <div class="med-time">
+                        <label class="text-[10px] text-gray-500 block mb-1">Cách dùng</label>
+                        <div class="visit-time-buttons">
                             <button class="time-btn ${(m.usage||'').includes('Sáng')?'active':''}" 
-                                    onclick="window.toggleMedUsage('${type}',${i},'Sáng')"
-                                    style="font-size:9px; padding:2px 4px;">S</button>
+                                    onclick="window.toggleMedUsage('${type}',${i},'Sáng')">Sáng</button>
                             <button class="time-btn ${(m.usage||'').includes('Trưa')?'active':''}" 
-                                    onclick="window.toggleMedUsage('${type}',${i},'Trưa')"
-                                    style="font-size:9px; padding:2px 4px;">T</button>
+                                    onclick="window.toggleMedUsage('${type}',${i},'Trưa')">Trưa</button>
                             <button class="time-btn ${(m.usage||'').includes('Chiều')?'active':''}" 
-                                    onclick="window.toggleMedUsage('${type}',${i},'Chiều')"
-                                    style="font-size:9px; padding:2px 4px;">C</button>
+                                    onclick="window.toggleMedUsage('${type}',${i},'Chiều')">Chiều</button>
                         </div>
                     </div>
                 </div>
