@@ -1,4 +1,4 @@
-/* --- LIQUID JADE & SONG DYNASTY STYLE (FULL UPDATED V3) --- */
+/* --- STYLE CSS (FINAL FIX - STRICTLY REQUESTED CHANGES) --- */
 
 /* 1. ROOT VARIABLES */
 :root {
@@ -183,7 +183,7 @@ body {
 .act-exam { background: linear-gradient(145deg, rgba(141, 110, 99, 0.95), rgba(93, 64, 55, 0.9)); color: #fdfbf7; width: 65px; box-shadow: 0 4px 10px rgba(93, 64, 55, 0.25), inset 0 1px 0 rgba(255,255,255,0.25); z-index: 2; border: 1px solid rgba(161, 136, 127, 0.5); }
 .act-del { background: linear-gradient(145deg, rgba(215, 204, 200, 0.9), rgba(188, 170, 164, 0.8)); color: #c62828; border: 1px solid rgba(255, 255, 255, 0.3); }
 
-/* 7. MODAL SYSTEM & TWEAKS */
+/* 7. MODAL SYSTEM */
 .modal {
     position: fixed; inset: 0; background: rgba(44, 41, 38, 0.75);
     backdrop-filter: blur(6px); transition: all 0.3s;
@@ -215,22 +215,6 @@ body {
     text-transform: uppercase; letter-spacing: 1px; margin: 0;
 }
 
-/* === [FIX] MỞ RỘNG Ô LỊCH SỬ (hModal) === */
-#hModal .modal-box {
-    width: 95% !important;
-    max-width: 800px !important; /* Mở rộng lên 800px */
-    height: 85vh; /* Cao hơn */
-}
-
-/* === [FIX] TỐI ƯU MODAL BỆNH NHÂN (pModal) === */
-#pModal .modal-box {
-    width: 90% !important;
-    max-width: 600px !important; /* Mở rộng hơn */
-}
-#pModal .modal-body {
-    padding: 30px 40px !important; /* Tăng khoảng cách lề */
-}
-
 /* 8. GIAO DIỆN KHÁM BỆNH & COMPONENTS */
 .tabs {
     display: flex; gap: 10px; padding: 15px 20px;
@@ -248,22 +232,7 @@ body {
     box-shadow: 0 4px 12px rgba(93, 64, 55, 0.3);
 }
 
-/* === [FIX] BỐ CỤC BƯỚC 1 (NGÀY KHÁM & CHẨN ĐOÁN) === */
-#step1 {
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* Chia 2 cột đều nhau */
-    gap: 20px;
-}
-/* Ô Ngày khám nằm gọn 1 bên, không bị dài ngoằng */
-#step1 > div:nth-child(1) { grid-column: 1 / 2; }
-/* Ô Chẩn đoán và các ô khác full dòng cho đẹp */
-#step1 > div:nth-child(2),
-#step1 > div:nth-child(3),
-#step1 > div:nth-child(4) { grid-column: 1 / -1; }
-
-/* Grid Sinh hiệu */
 .vital-grid {
-    grid-column: 1 / -1;
     display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
     background: #fff; border: 1px solid #d7ccc8; border-radius: 20px;
     padding: 20px; box-shadow: 0 8px 24px rgba(62, 39, 35, 0.06); margin-top: 10px;
@@ -405,192 +374,86 @@ body {
 .toast-content { font-size: 14px; color: #3e2723; font-weight: 500; }
 
 /* ============================================================
-   14. IPAD AIR 5 / DESKTOP LANDSCAPE (RESTORED + FIXED)
+   14. IPAD AIR 5 / DESKTOP LANDSCAPE (FIXED ONLY REQUESTS)
    (Kích hoạt khi màn hình rộng > 1024px)
    ============================================================ */
 @media (min-width: 1024px) {
 
-    /* --- A. HEADER CÂN ĐỐI & DÀI HƠN --- */
-    body {
-        padding-bottom: 40px;
-        background-attachment: fixed;
-    }
+    /* A. HEADER & LAYOUT (CÂN ĐỐI HƠN) */
+    body { padding-bottom: 40px; background-attachment: fixed; }
 
     #mainHeader {
-        min-height: 280px !important; 
+        min-height: 250px !important; /* Dài hơn chút */
         padding-top: 40px !important; 
-        padding-bottom: 60px !important;
-        border-radius: 0 0 60px 60px !important; 
+        padding-bottom: 50px !important;
+        border-radius: 0 0 50px 50px !important; 
     }
-
-    #headerOverlay {
-        border-radius: 0 0 60px 60px !important;
-    }
+    #headerOverlay { border-radius: 0 0 50px 50px !important; }
 
     .header-card {
-        width: 96% !important; 
-        max-width: 1280px !important; 
-        padding: 30px 50px !important;
+        width: 95% !important; /* Nới rộng ra */
+        max-width: 1100px !important; 
+        padding: 25px 40px !important;
         margin-top: 10px !important; 
     }
 
-    #displayTitle {
-        font-size: 2.8rem !important; 
-        margin-bottom: 8px;
-    }
+    #displayTitle { font-size: 2.5rem !important; margin-bottom: 10px; }
 
+    /* Hộp ngày tháng dàn ngang */
     #headerInfoBox {
-        display: flex;
-        flex-direction: row;
-        gap: 40px;
-        align-items: center;
-        background: rgba(62, 39, 35, 0.08);
-        padding: 15px 25px !important;
+        display: flex; flex-direction: row; gap: 30px;
+        align-items: center; background: rgba(62, 39, 35, 0.08);
+        padding: 12px 20px !important;
     }
     #headerInfoBox > div { margin-bottom: 0 !important; }
 
-    /* --- B. BỐ CỤC CHÍNH (2 CỘT) --- */
-    .max-w-3xl {
-        max-width: 1280px !important; 
-        width: 96%;
-    }
+    .max-w-3xl { max-width: 1100px !important; width: 95%; }
 
-    #menuContainer {
-        display: grid;
-        grid-template-columns: 300px 1fr; /* Cột Menu trái 300px */
-        gap: 40px;
-        align-items: start;
-        margin-top: -50px; /* Đè lên header tạo chiều sâu */
-        padding: 0 20px;
-    }
-
-    #searchArea, .grid-cols-5 {
-        grid-column: 1 / 2;
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-    }
-    
-    .grid-cols-5 > button.col-span-2 { width: 100%; }
-    .grid-cols-5 > button { height: 75px; font-size: 15px; }
-
-    #monthFilterArea, #list {
-        grid-column: 2 / 3;
-    }
-    
-    #list {
-        display: grid;
-        grid-template-columns: 1fr 1fr; /* Danh sách bệnh nhân 2 cột */
-        gap: 20px;
-    }
-
-    /* --- C. TỐI ƯU CÁC CỬA SỔ (MODALS) --- */
-
-    /* 1. SỬA LỖI Ô BỆNH NHÂN (pModal) - QUÁ CHẬT */
+    /* B. SỬA LỖI Ô NHẬP LIỆU BỆNH NHÂN SÁT MÉP (#pModal) */
     #pModal .modal-box {
-        max-width: 700px !important; /* Mở rộng chiều ngang */
+        max-width: 600px !important; /* Mở rộng chiều ngang */
         width: 90% !important;
     }
     #pModal .modal-body {
-        padding: 40px 50px !important; /* Thêm đệm để không sát mép */
-        display: grid;
-        grid-template-columns: 1fr 1fr; /* Chia 2 cột nhập liệu */
-        gap: 25px;
-    }
-    /* Tên và Địa chỉ full dòng */
-    #pModal .modal-body > div:nth-child(2), /* Họ tên */
-    #pModal .modal-body > div:last-child {   /* Địa chỉ */
-        grid-column: 1 / -1;
+        padding: 30px 40px !important; /* Tăng khoảng cách lề trong (Padding) */
     }
 
-    /* 2. SỬA LỖI Ô LỊCH SỬ (hModal) - LÀM MẬP RA */
+    /* C. LÀM "MẬP" Ô LỊCH SỬ (#hModal) */
     #hModal .modal-box {
-        width: 95% !important;
-        max-width: 1100px !important; /* Mập ra trên iPad */
-        height: 85vh !important;
+        width: 90% !important;
+        max-width: 900px !important; /* To hơn nhiều */
+        height: 80vh !important;
     }
 
-    /* 3. SỬA LỖI Ô KHÁM BỆNH (vModal) */
+    /* D. SỬA LỖI Ô NGÀY KHÁM LỆCH (#vModal) */
     #vModal .modal-box {
-        max-width: 1200px !important;
+        max-width: 1000px !important;
         height: 90vh !important;
-        border-radius: 24px;
     }
 
-    /* STEP 1: Căn chỉnh Ngày khám thẳng hàng */
+    /* Chia lại bố cục Step 1 để ô ngày khám ngắn lại */
     #step1 {
         display: grid;
-        grid-template-columns: 1.2fr 1fr; /* Trái: Nhập liệu, Phải: Sinh hiệu */
-        gap: 40px;
-        padding: 10px;
-    }
-    
-    #step1 > div:nth-child(1), /* Ngày khám */
-    #step1 > div:nth-child(2) { /* Chẩn đoán */
-        width: 100%;
-    }
-    
-    .vital-grid {
-        margin-top: 0;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr 1fr; /* Chia đôi màn hình */
         gap: 20px;
-        align-content: start;
+    }
+    
+    /* Ô Ngày khám nằm gọn ở cột trái */
+    #step1 > div:nth-child(1) { 
+        grid-column: 1 / 2; 
+    }
+    
+    /* Các ô Chẩn đoán, Triệu chứng... bung ra full dòng cho đẹp */
+    #step1 > div:nth-child(2), 
+    #step1 > div:nth-child(3), 
+    #step1 > div:nth-child(4) { 
+        grid-column: 1 / -1; 
     }
 
-    /* STEP 2: Tứ chẩn 3 cột */
-    #step2 {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 25px;
-    }
-    #step2 > div:last-child { grid-column: 1 / -1; }
-
-    /* STEP 3: Thuốc 3 cột song song */
-    #step3 {
-        display: grid;
-        grid-template-columns: 1fr 1.2fr 1fr;
-        gap: 25px;
-        height: 100%;
-        overflow: hidden; 
-    }
-    #step3 > div {
-        max-height: 65vh;
-        overflow-y: auto;
-        display: flex;
-        flex-direction: column;
-    }
-    #step3 .bg-\[\#efebe9\] {
+    /* Sinh hiệu cũng chia đôi */
+    .vital-grid {
         grid-column: 1 / -1;
-        margin-top: auto;
-        display: flex;
-        justify-content: space-between;
-        padding: 20px 40px;
+        display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
+        margin-top: 0;
     }
-
-    /* --- D. CÀI ĐẶT (sModal) - 2 CỘT --- */
-    #sModal .modal-box {
-        flex-direction: row !important;
-        max-width: 1000px !important;
-    }
-    #sModal .tabs {
-        flex-direction: column;
-        width: 240px;
-        border-right: 1px solid #efebe9;
-        border-bottom: none;
-        padding-top: 40px;
-        background: #faf8f5;
-    }
-    #sModal .tab-btn {
-        text-align: left;
-        border-radius: 0 24px 24px 0;
-        margin-bottom: 8px;
-        padding-left: 30px;
-    }
-    #sModal .tab-btn.active {
-        box-shadow: none;
-        border-left: 5px solid #3e2723;
-        background: #fff;
-        color: #3e2723;
-    }
-    #sModal .modal-body { padding: 40px; }
 }
