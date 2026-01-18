@@ -1,4 +1,4 @@
-/* --- LIQUID JADE & SONG DYNASTY STYLE (FINAL TWEAK) --- */
+/* --- LIQUID JADE & SONG DYNASTY STYLE (FULL UPDATED FOR IPAD) --- */
 
 /* 1. ROOT VARIABLES */
 :root {
@@ -18,7 +18,7 @@
     --shadow-soft: 0 8px 24px rgba(93, 64, 55, 0.06);
     --glass-border: 1px solid rgba(255, 255, 255, 0.4);
     
-    /* Biến Blur động */
+    /* Biến Blur động (được JS cập nhật) */
     --header-blur: 10px;
 }
 
@@ -65,7 +65,7 @@ body {
 
 .header-card {
     background: rgba(255, 255, 255, 0.9);
-    /* Blur nền chính: Dựa vào biến JS chỉnh */
+    /* Blur nền chính */
     backdrop-filter: blur(var(--header-blur));
     -webkit-backdrop-filter: blur(var(--header-blur));
     border: 1px solid rgba(255, 255, 255, 0.8);
@@ -78,64 +78,40 @@ body {
     margin-bottom: 10px; transition: all 0.4s ease;
 }
 
-/* Header trong suốt (khi có ảnh nền) */
 .header-card.transparent-mode {
-    background: rgba(255, 255, 255, 0.15); /* Giảm nền trắng xuống để thấy ảnh rõ hơn */
+    background: rgba(255, 255, 255, 0.15); 
     border: 1px solid rgba(255, 255, 255, 0.3);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
-/* --- TÙY CHỈNH HỘP THÔNG TIN (INFO BOX) --- */
-.header-info-box {
-    /* 1. NỀN TỐI HƠN: Màu nâu gỗ với độ trong suốt 30% -> Tạo độ sâu rõ rệt */
-    background-color: rgba(62, 39, 35, 0.3) !important;
-    
-    /* 2. VIỀN RÕ HƠN */
-    border: 1px solid rgba(62, 39, 35, 0.25) !important;
-    
-    /* 3. BLUR CỘNG DỒN: Blur của con sẽ đè lên blur của cha -> Mờ hơn hẳn */
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
-    
-    /* 4. ĐỔ BÓNG TRONG */
-    box-shadow: inset 0 1px 15px rgba(0,0,0,0.1);
-    
-    border-radius: 12px;
-    transition: all 0.3s ease;
+/* HỘP THÔNG TIN (INFO BOX) */
+#headerInfoBox {
+    background-color: rgba(62, 39, 35, 0.05); /* Mặc định mobile */
+    border: 1px solid rgba(62, 39, 35, 0.1);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    box-shadow: inset 0 1px 15px rgba(0,0,0,0.05);
+    border-radius: 12px; transition: all 0.3s ease;
 }
 
-/* CẤU HÌNH TIÊU ĐỀ */
 #displayTitle {
-    white-space: nowrap !important; 
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis;
     font-size: clamp(1.2rem, 4vw, 1.875rem) !important; 
-    line-height: 1.2;
-    display: block;
-    width: 100%;
+    line-height: 1.2; display: block; width: 100%;
 }
 
-/* Các nhãn trong Header */
-#mainHeaderCard, 
-#mainHeaderCard span, 
-#mainHeaderCard p, 
-#mainHeaderCard h1, 
-#mainHeaderCard div {
-    color: #3e2723; /* Màu mặc định */
-    opacity: 1; 
-    text-shadow: none;
+#mainHeaderCard, #mainHeaderCard span, #mainHeaderCard p, #mainHeaderCard h1 {
+    color: #3e2723; opacity: 1; text-shadow: none;
 }
 
 #monthLabel {
     font-size: 11px !important; font-weight: 800 !important;
-    text-transform: uppercase;
-    margin-bottom: 4px; letter-spacing: 1px;
-    text-align: center; opacity: 1; transition: color 0.3s ease;
+    text-transform: uppercase; margin-bottom: 4px; letter-spacing: 1px;
+    text-align: center; opacity: 1;
 }
 
 #profitLabel {
     min-width: 130px; display: inline-block; text-align: center;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: middle;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     font-weight: 900 !important;
 }
 
@@ -165,7 +141,7 @@ body {
 #search:focus { transform: translateY(-2px); box-shadow: var(--shadow-float); border-color: var(--song-wood); }
 
 
-/* 5. BUTTONS (LIQUID GLASS) */
+/* 5. BUTTONS */
 .btn-glass {
     background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(245, 240, 230, 0.8) 100%);
     border: 1px solid #fff; color: var(--song-wood);
@@ -248,8 +224,6 @@ body {
 
 
 /* 8. GIAO DIỆN KHÁM BỆNH & COMPONENTS */
-
-/* TABS */
 .tabs {
     display: flex; gap: 10px; padding: 15px 20px;
     background: #fbf8f5; border-bottom: 1px solid #efebe9;
@@ -266,7 +240,6 @@ body {
     box-shadow: 0 4px 12px rgba(93, 64, 55, 0.3);
 }
 
-/* SINH HIỆU GRID */
 .vital-grid {
     display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
     background: #fff; border: 1px solid #d7ccc8; border-radius: 20px;
@@ -286,26 +259,17 @@ body {
     box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
 }
 
-/* TỨ CHẨN CHIPS */
-.chip-container {
-    display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;
-}
+.chip-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
 .tuchan-chip {
     padding: 6px 12px; border: 1px solid #d7ccc8; border-radius: 16px;
     font-size: 12px; background: #fff; color: #5d4037; cursor: pointer; white-space: normal;
 }
 .tuchan-chip.active { background: #5d4037; color: #fff; border-color: #5d4037; }
 
-/* THỦ THUẬT CARD */
 .proc-card {
-    background: #fff;
-    border: 1px solid #e0e0e0;
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 16px;
-    position: relative;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-    transition: all 0.2s;
+    background: #fff; border: 1px solid #e0e0e0; border-radius: 16px;
+    padding: 16px; margin-bottom: 16px; position: relative;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03); transition: all 0.2s;
 }
 .proc-card:hover { box-shadow: 0 8px 20px rgba(93, 64, 55, 0.08); border-color: #d7ccc8; }
 
@@ -314,31 +278,8 @@ body {
     width: 24px; height: 24px; border-radius: 50%;
     background: #ffebee; color: #c62828; border: 1px solid #ffcdd2;
     font-size: 14px; line-height: 22px; text-align: center; cursor: pointer;
-    transition: all 0.2s;
-}
-.proc-del-btn:hover { background: #ef9a9a; color: #fff; }
-
-.proc-input-group { display: flex; flex-direction: column; }
-.proc-input-group label {
-    font-size: 9px; text-transform: uppercase; font-weight: 700;
-    color: #a1887f; margin-bottom: 4px; text-align: center;
-}
-.proc-input {
-    width: 100%; height: 40px; border-radius: 10px;
-    border: 1px solid #e0e0e0; background: #fff;
-    font-size: 15px; color: #3e2723; text-align: center;
-    outline: none; transition: border 0.2s;
-}
-.proc-input:focus { border-color: #8d6e63; background: #fff; }
-
-.proc-total-display {
-    background: #f5f5f5; border: 1px solid #e0e0e0;
-    font-family: 'Noto Sans', sans-serif;
-    display: flex; align-items: center; justify-content: center;
-    height: 40px; border-radius: 10px; font-weight: bold; color: #3e2723;
 }
 
-/* THẺ THUỐC */
 #step3 .bg-white.p-4 {
     border-radius: 20px; border: 1px solid #efebe9;
     box-shadow: 0 6px 20px rgba(62, 39, 35, 0.05); margin-bottom: 20px; overflow: hidden;
@@ -350,7 +291,6 @@ body {
     background: #faf8f5; padding: 12px 16px; border-radius: 16px 16px 0 0;
 }
 
-/* INPUTS & CHIPS CHUNG */
 .song-input {
     background: #fff; border: 1px solid #d7ccc8; color: #3e2723;
     border-radius: 12px; padding: 12px 14px; outline: none; transition: all 0.3s;
@@ -377,11 +317,9 @@ body {
     box-shadow: 0 4px 10px rgba(93, 64, 55, 0.3); transform: translateY(-1px);
 }
 
-/* AI BOX */
 #suggestedSymptomsBox { background: #f1f8e9; border: 1px dashed #aed581; border-radius: 16px; padding: 12px 16px; margin-bottom: 12px; }
 #suggestedSymptomsBox label.song-label { color: #558b2f !important; margin-bottom: 10px; border-bottom: none !important; }
 
-/* CHIPS */
 .med-chip {
     display: inline-block; padding: 8px 16px; border-radius: 24px;
     font-size: 13px; font-weight: 600; margin-right: 8px; margin-bottom: 8px;
@@ -389,20 +327,12 @@ body {
     background: #fff; border: 1px solid #d7ccc8; color: #5d4037;
 }
 .med-chip:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(93, 64, 55, 0.15); border-color: #8d6e63; }
-.med-chip:active { transform: scale(0.95); background: #efebe9; }
-
-#symptomButtons .med-chip { background: #fff; border: 1px solid #c5e1a5; color: #33691e; }
-#symptomButtons .med-chip:hover { background: #f1f8e9; border-color: #7cb342; }
-
-#eastPresetButtons { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; }
 .med-chip.active-preset {
     background: linear-gradient(145deg, #6d4c41, #3e2723) !important;
     color: #f2ebe0 !important; border: none !important;
-    box-shadow: 0 4px 12px rgba(62, 39, 35, 0.4) !important;
-    padding-left: 20px; padding-right: 20px;
+    box-shadow: 0 4px 12px rgba(62, 39, 35, 0.4) !important; padding-left: 20px; padding-right: 20px;
 }
 
-/* 9. MONTH CHIPS */
 #monthFilterArea { padding: 10px 4px 16px 4px; display: flex; gap: 8px; overflow-x: auto; margin-bottom: 10px; }
 .month-chip {
     padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 600;
@@ -414,52 +344,23 @@ body {
     box-shadow: 0 4px 12px rgba(93, 64, 55, 0.4);
 }
 
-/* 10. UTILS */
 .hidden { display: none !important; }
 .ipad-input-fix { -webkit-user-select: text !important; user-select: text !important; }
 ::-webkit-scrollbar { display: none; }
-
 #numberPadModal.modal { z-index: 3000 !important; }
 #printModal.modal { z-index: 4000 !important; }
-.dot { transition: background 0.2s; }
 
-/* 11. MERGED INLINE STYLES */
-/* Hiệu ứng highlight cho AI gợi ý */
-.highlight-suggestion {
-    animation: pulse-gold 2s infinite;
-    border-color: #fdd835 !important;
-    background-color: #fff9c4 !important;
-    box-shadow: 0 0 10px rgba(253, 216, 53, 0.5);
-}
-@keyframes pulse-gold {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
-}
-/* Ẩn thanh cuộn nhưng vẫn cuộn được */
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-/* 12. COLOR PALETTE SWATCHES */
-.color-swatch-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 8px;
-    margin-top: 10px;
-}
+/* 11. COLOR PALETTE */
+.color-swatch-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 10px; }
 .color-swatch {
-    width: 100%;
-    aspect-ratio: 1;
-    border-radius: 50%;
-    cursor: pointer;
-    border: 2px solid transparent;
-    transition: transform 0.2s, border-color 0.2s;
+    width: 100%; aspect-ratio: 1; border-radius: 50%; cursor: pointer;
+    border: 2px solid transparent; transition: transform 0.2s, border-color 0.2s;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 .color-swatch:hover { transform: scale(1.1); }
 .color-swatch.active { border-color: #3e2723; transform: scale(1.15); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
 
-/* 13. PRINT STYLES */
+/* 12. PRINT STYLES */
 @media print {
     body * { visibility: hidden; }
     #printArea, #printArea * { visibility: visible; }
@@ -467,191 +368,214 @@ body {
     .print-section { display: block !important; }
     .hidden-print { display: none !important; }
     .print-section.hidden { display: none !important; }
+}
+
+/* 13. TOAST NOTIFICATIONS */
+#toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 5000; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 350px; pointer-events: none; }
+.toast { background: white; border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transform: translateY(-20px); opacity: 0; transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55); pointer-events: auto; border-left: 5px solid #5d4037; }
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.hide { transform: translateY(-20px); opacity: 0; }
+.toast-success { border-left-color: #2e7d32; }
+.toast-error { border-left-color: #c62828; }
+.toast-warning { border-left-color: #f9a825; }
+.toast-icon { font-size: 20px; }
+.toast-content { font-size: 14px; color: #3e2723; font-weight: 500; }
+
 /* ============================================================
-   14. IPAD AIR / DESKTOP LANDSCAPE OPTIMIZATION
-   (Kích hoạt khi màn hình rộng hơn 1024px)
+   14. IPAD AIR 5 / DESKTOP LANDSCAPE (FINAL FIX)
+   (Kích hoạt khi màn hình rộng > 1024px)
    ============================================================ */
 @media (min-width: 1024px) {
 
-    /* --- A. BỐ CỤC CHUNG & HEADER --- */
+    /* --- A. HEADER CÂN ĐỐI & DÀI HƠN --- */
     body {
-        padding-bottom: 40px; /* Giảm padding đáy */
-        background-attachment: fixed; /* Cố định nền */
+        padding-bottom: 40px;
+        background-attachment: fixed;
     }
 
-    /* Mở rộng khung chứa chính từ 768px lên 1200px để tận dụng màn hình iPad */
-    .max-w-3xl {
-        max-width: 1180px !important; 
-        width: 95%;
+    #mainHeader {
+        /* Kéo background dài xuống hơn */
+        min-height: 280px !important; 
+        /* Đẩy nội dung xuống một chút cho thoáng */
+        padding-top: 40px !important; 
+        padding-bottom: 60px !important;
+        /* Bo góc to hơn cho hợp với màn hình lớn */
+        border-radius: 0 0 60px 60px !important; 
     }
 
-    /* Header dàn ngang đẹp hơn */
+    #headerOverlay {
+        border-radius: 0 0 60px 60px !important;
+    }
+
     .header-card {
-        padding: 25px 40px;
-        max-width: 100%;
-        width: 100%;
+        /* Nới rộng Header ra sát mép cho cân đối */
+        width: 96% !important; 
+        max-width: 1280px !important; 
+        padding: 30px 50px !important;
+        /* Đẩy card xuống khỏi mép trên */
+        margin-top: 10px !important; 
     }
 
-    /* Tăng kích thước chữ tiêu đề */
     #displayTitle {
-        font-size: 2.5rem !important;
-        margin-bottom: 10px;
+        font-size: 2.8rem !important; /* Chữ to hơn */
+        margin-bottom: 8px;
     }
 
-    /* Đưa ô thông tin (Ngày tháng) dàn hàng ngang thẳng lối */
+    /* Grid thông tin ngày tháng dàn ngang */
     #headerInfoBox {
         display: flex;
         flex-direction: row;
-        gap: 30px;
+        gap: 40px;
         align-items: center;
-        background: rgba(62, 39, 35, 0.08); /* Đậm hơn chút */
+        background: rgba(62, 39, 35, 0.08);
+        padding: 15px 25px !important;
     }
-    #headerInfoBox > div {
-        margin-bottom: 0 !important; /* Xóa margin cũ */
+    #headerInfoBox > div { margin-bottom: 0 !important; }
+
+    /* --- B. BỐ CỤC CHÍNH (2 CỘT) --- */
+    .max-w-3xl {
+        max-width: 1280px !important; /* Mở rộng khung chứa chính */
+        width: 96%;
     }
 
-    /* --- B. THANH MENU (GRID THẲNG HÀNG) --- */
     #menuContainer {
         display: grid;
-        grid-template-columns: 280px 1fr; /* Cột trái: Menu, Cột phải: Danh sách */
-        gap: 30px;
+        grid-template-columns: 300px 1fr; /* Cột Menu trái 300px */
+        gap: 40px;
         align-items: start;
-        margin-top: -40px; /* Kéo lên đè nhẹ vào header tạo chiều sâu */
+        margin-top: -50px; /* Đè lên header tạo chiều sâu */
+        padding: 0 20px;
     }
 
-    /* Khu vực tìm kiếm & Nút bấm chuyển sang cột bên trái */
-    #searchArea {
-        grid-column: 1 / 2;
-        margin-bottom: 15px;
-    }
-    
-    /* Grid các nút chức năng (Bệnh nhân, Báo cáo...) */
-    .grid-cols-5 {
+    #searchArea, .grid-cols-5 {
         grid-column: 1 / 2;
         display: flex;
-        flex-direction: column; /* Xếp dọc bên trái */
-        gap: 15px;
+        flex-direction: column;
+        gap: 20px;
     }
     
-    .grid-cols-5 > button.col-span-2 {
-        grid-column: auto;
-        width: 100%;
-    }
-    
-    .grid-cols-5 > button {
-        height: 70px; /* Nút cao hơn, dễ bấm trên iPad */
-        font-size: 14px;
-    }
+    .grid-cols-5 > button.col-span-2 { width: 100%; }
+    .grid-cols-5 > button { height: 75px; font-size: 15px; }
 
-    /* --- C. DANH SÁCH BỆNH NHÂN (BÊN PHẢI) --- */
-    #monthFilterArea {
+    #monthFilterArea, #list {
         grid-column: 2 / 3;
     }
     
     #list {
-        grid-column: 2 / 3;
         display: grid;
-        grid-template-columns: 1fr 1fr; /* Chia danh sách thành 2 cột */
-        gap: 15px;
-    }
-
-    /* --- D. MODAL (CỬA SỔ LÀM VIỆC) --- */
-    
-    /* Mở rộng Modal to gần full màn hình iPad */
-    .modal-box.w-full {
-        max-width: 1100px !important;
-        height: 85vh !important;
-        border-radius: 24px;
-    }
-
-    /* --- E. TỐI ƯU HÓA GIAO DIỆN KHÁM (vModal) --- */
-    
-    /* Bước 1: Chia đôi màn hình (Trái: Nhập liệu, Phải: Sinh hiệu) */
-    #step1 {
-        display: grid;
-        grid-template-columns: 1.5fr 1fr;
-        gap: 30px;
-        align-items: start;
-    }
-    
-    /* Sinh hiệu (Huyết áp...) xếp gọn lại */
-    .vital-grid {
-        margin-top: 0;
-        grid-template-columns: 1fr 1fr;
-    }
-
-    /* Bước 2: Tứ chẩn - Dàn thành 3 cột */
-    #step2 {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-columns: 1fr 1fr; /* Danh sách bệnh nhân 2 cột */
         gap: 20px;
     }
-    /* Mạch chẩn nằm riêng full width hoặc ở cột cuối */
-    #step2 > div:last-child {
+
+    /* --- C. TỐI ƯU CÁC CỬA SỔ (MODALS) --- */
+
+    /* 1. SỬA LỖI Ô BỆNH NHÂN (pModal) - QUÁ CHẬT */
+    #pModal .modal-box {
+        max-width: 700px !important; /* Mở rộng chiều ngang */
+        width: 90% !important;
+    }
+    #pModal .modal-body {
+        padding: 40px 50px !important; /* Thêm đệm để không sát mép */
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* Chia 2 cột nhập liệu */
+        gap: 25px;
+    }
+    /* Tên và Địa chỉ full dòng */
+    #pModal .modal-body > div:nth-child(2), /* Họ tên */
+    #pModal .modal-body > div:last-child {   /* Địa chỉ */
         grid-column: 1 / -1;
     }
 
-    /* Bước 3: Điều trị - QUAN TRỌNG NHẤT - Dàn 3 cột song song */
-    /* Cột 1: Thủ thuật | Cột 2: Đông Y | Cột 3: Tây Y */
+    /* 2. SỬA LỖI Ô LỊCH SỬ (hModal) - QUÁ NHỎ/ỐM */
+    #hModal .modal-box {
+        max-width: 900px !important; /* Mở rộng ra to rõ */
+        height: 85vh !important;
+    }
+
+    /* 3. SỬA LỖI Ô KHÁM BỆNH (vModal) & NGÀY KHÁM LỆCH */
+    #vModal .modal-box {
+        max-width: 1200px !important;
+        height: 90vh !important;
+        border-radius: 24px;
+    }
+
+    /* STEP 1: Căn chỉnh Ngày khám thẳng hàng */
+    #step1 {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr; /* Trái: Nhập liệu, Phải: Sinh hiệu */
+        gap: 40px;
+        padding: 10px;
+    }
+    
+    /* Gom nhóm Ngày và Chẩn đoán vào một khối thống nhất */
+    #step1 > div:nth-child(1), /* Ngày khám */
+    #step1 > div:nth-child(2) { /* Chẩn đoán */
+        width: 100%;
+    }
+    
+    /* Sinh hiệu grid 2x2 đẹp hơn */
+    .vital-grid {
+        margin-top: 0;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        align-content: start;
+    }
+
+    /* STEP 2: Tứ chẩn 3 cột */
+    #step2 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 25px;
+    }
+    #step2 > div:last-child { grid-column: 1 / -1; } /* Mạch chẩn full */
+
+    /* STEP 3: Thuốc 3 cột song song */
     #step3 {
         display: grid;
         grid-template-columns: 1fr 1.2fr 1fr;
-        gap: 20px;
-        align-items: start;
+        gap: 25px;
         height: 100%;
-        overflow: hidden; /* Tránh scroll toàn trang */
+        overflow: hidden; 
     }
-
-    /* Cho phép scroll riêng từng cột thuốc nếu dài */
     #step3 > div {
-        max-height: 60vh;
+        max-height: 65vh;
         overflow-y: auto;
-        margin-bottom: 0 !important;
         display: flex;
         flex-direction: column;
     }
-    
-    /* Khu vực tổng tiền (nằm dưới cùng full width) */
+    /* Tổng tiền full width dưới cùng */
     #step3 .bg-\[\#efebe9\] {
         grid-column: 1 / -1;
         margin-top: auto;
         display: flex;
         justify-content: space-between;
-        align-items: center;
-        padding: 15px 30px;
+        padding: 20px 40px;
     }
 
-    /* --- F. MODAL CÀI ĐẶT (sModal) --- */
-    /* Chia 2 cột: Trái menu Tab, Phải nội dung */
+    /* --- D. CÀI ĐẶT (sModal) - 2 CỘT --- */
     #sModal .modal-box {
         flex-direction: row !important;
+        max-width: 1000px !important;
     }
-    
     #sModal .tabs {
         flex-direction: column;
-        width: 200px;
+        width: 240px;
         border-right: 1px solid #efebe9;
         border-bottom: none;
-        padding-top: 30px;
+        padding-top: 40px;
         background: #faf8f5;
     }
-    
     #sModal .tab-btn {
         text-align: left;
-        border-radius: 0 20px 20px 0;
-        margin-bottom: 5px;
+        border-radius: 0 24px 24px 0;
+        margin-bottom: 8px;
+        padding-left: 30px;
     }
     #sModal .tab-btn.active {
         box-shadow: none;
-        border-left: 4px solid #3e2723;
+        border-left: 5px solid #3e2723;
+        background: #fff;
+        color: #3e2723;
     }
-
-    #sModal .modal-body {
-        padding: 40px;
-    }
-
-    /* Grid cho phần cài đặt giao diện */
-    #tabUI .grid-cols-2 {
-        gap: 30px;
-    }
+    #sModal .modal-body { padding: 40px; }
 }
