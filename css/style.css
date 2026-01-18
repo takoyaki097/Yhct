@@ -1,4 +1,4 @@
-/* --- LIQUID JADE & SONG DYNASTY STYLE (FULL UPDATED FOR IPAD) --- */
+/* --- LIQUID JADE & SONG DYNASTY STYLE (FULL UPDATED V3) --- */
 
 /* 1. ROOT VARIABLES */
 :root {
@@ -18,7 +18,6 @@
     --shadow-soft: 0 8px 24px rgba(93, 64, 55, 0.06);
     --glass-border: 1px solid rgba(255, 255, 255, 0.4);
     
-    /* Biến Blur động (được JS cập nhật) */
     --header-blur: 10px;
 }
 
@@ -65,7 +64,6 @@ body {
 
 .header-card {
     background: rgba(255, 255, 255, 0.9);
-    /* Blur nền chính */
     backdrop-filter: blur(var(--header-blur));
     -webkit-backdrop-filter: blur(var(--header-blur));
     border: 1px solid rgba(255, 255, 255, 0.8);
@@ -84,9 +82,8 @@ body {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
-/* HỘP THÔNG TIN (INFO BOX) */
 #headerInfoBox {
-    background-color: rgba(62, 39, 35, 0.05); /* Mặc định mobile */
+    background-color: rgba(62, 39, 35, 0.05);
     border: 1px solid rgba(62, 39, 35, 0.1);
     backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
     box-shadow: inset 0 1px 15px rgba(0,0,0,0.05);
@@ -118,7 +115,6 @@ body {
 #mainHeaderCard .text-xs { font-weight: 600 !important; }
 .header-sep-line { border-color: rgba(62, 39, 35, 0.3) !important; }
 
-
 /* 4. SEARCH & MENU */
 #menuContainer {
     position: relative; z-index: 20;
@@ -140,7 +136,6 @@ body {
 }
 #search:focus { transform: translateY(-2px); box-shadow: var(--shadow-float); border-color: var(--song-wood); }
 
-
 /* 5. BUTTONS */
 .btn-glass {
     background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(245, 240, 230, 0.8) 100%);
@@ -159,7 +154,6 @@ body {
     transition: all 0.2s; cursor: pointer;
 }
 .btn-primary:active { transform: scale(0.96); opacity: 0.95; }
-
 
 /* 6. PATIENT LIST */
 .patient-row {
@@ -189,8 +183,7 @@ body {
 .act-exam { background: linear-gradient(145deg, rgba(141, 110, 99, 0.95), rgba(93, 64, 55, 0.9)); color: #fdfbf7; width: 65px; box-shadow: 0 4px 10px rgba(93, 64, 55, 0.25), inset 0 1px 0 rgba(255,255,255,0.25); z-index: 2; border: 1px solid rgba(161, 136, 127, 0.5); }
 .act-del { background: linear-gradient(145deg, rgba(215, 204, 200, 0.9), rgba(188, 170, 164, 0.8)); color: #c62828; border: 1px solid rgba(255, 255, 255, 0.3); }
 
-
-/* 7. MODAL SYSTEM */
+/* 7. MODAL SYSTEM & TWEAKS */
 .modal {
     position: fixed; inset: 0; background: rgba(44, 41, 38, 0.75);
     backdrop-filter: blur(6px); transition: all 0.3s;
@@ -222,6 +215,21 @@ body {
     text-transform: uppercase; letter-spacing: 1px; margin: 0;
 }
 
+/* === [FIX] MỞ RỘNG Ô LỊCH SỬ (hModal) === */
+#hModal .modal-box {
+    width: 95% !important;
+    max-width: 800px !important; /* Mở rộng lên 800px */
+    height: 85vh; /* Cao hơn */
+}
+
+/* === [FIX] TỐI ƯU MODAL BỆNH NHÂN (pModal) === */
+#pModal .modal-box {
+    width: 90% !important;
+    max-width: 600px !important; /* Mở rộng hơn */
+}
+#pModal .modal-body {
+    padding: 30px 40px !important; /* Tăng khoảng cách lề */
+}
 
 /* 8. GIAO DIỆN KHÁM BỆNH & COMPONENTS */
 .tabs {
@@ -240,7 +248,22 @@ body {
     box-shadow: 0 4px 12px rgba(93, 64, 55, 0.3);
 }
 
+/* === [FIX] BỐ CỤC BƯỚC 1 (NGÀY KHÁM & CHẨN ĐOÁN) === */
+#step1 {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Chia 2 cột đều nhau */
+    gap: 20px;
+}
+/* Ô Ngày khám nằm gọn 1 bên, không bị dài ngoằng */
+#step1 > div:nth-child(1) { grid-column: 1 / 2; }
+/* Ô Chẩn đoán và các ô khác full dòng cho đẹp */
+#step1 > div:nth-child(2),
+#step1 > div:nth-child(3),
+#step1 > div:nth-child(4) { grid-column: 1 / -1; }
+
+/* Grid Sinh hiệu */
 .vital-grid {
+    grid-column: 1 / -1;
     display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
     background: #fff; border: 1px solid #d7ccc8; border-radius: 20px;
     padding: 20px; box-shadow: 0 8px 24px rgba(62, 39, 35, 0.06); margin-top: 10px;
@@ -382,7 +405,7 @@ body {
 .toast-content { font-size: 14px; color: #3e2723; font-weight: 500; }
 
 /* ============================================================
-   14. IPAD AIR 5 / DESKTOP LANDSCAPE (FINAL FIX)
+   14. IPAD AIR 5 / DESKTOP LANDSCAPE (RESTORED + FIXED)
    (Kích hoạt khi màn hình rộng > 1024px)
    ============================================================ */
 @media (min-width: 1024px) {
@@ -394,12 +417,9 @@ body {
     }
 
     #mainHeader {
-        /* Kéo background dài xuống hơn */
         min-height: 280px !important; 
-        /* Đẩy nội dung xuống một chút cho thoáng */
         padding-top: 40px !important; 
         padding-bottom: 60px !important;
-        /* Bo góc to hơn cho hợp với màn hình lớn */
         border-radius: 0 0 60px 60px !important; 
     }
 
@@ -408,20 +428,17 @@ body {
     }
 
     .header-card {
-        /* Nới rộng Header ra sát mép cho cân đối */
         width: 96% !important; 
         max-width: 1280px !important; 
         padding: 30px 50px !important;
-        /* Đẩy card xuống khỏi mép trên */
         margin-top: 10px !important; 
     }
 
     #displayTitle {
-        font-size: 2.8rem !important; /* Chữ to hơn */
+        font-size: 2.8rem !important; 
         margin-bottom: 8px;
     }
 
-    /* Grid thông tin ngày tháng dàn ngang */
     #headerInfoBox {
         display: flex;
         flex-direction: row;
@@ -434,7 +451,7 @@ body {
 
     /* --- B. BỐ CỤC CHÍNH (2 CỘT) --- */
     .max-w-3xl {
-        max-width: 1280px !important; /* Mở rộng khung chứa chính */
+        max-width: 1280px !important; 
         width: 96%;
     }
 
@@ -486,13 +503,14 @@ body {
         grid-column: 1 / -1;
     }
 
-    /* 2. SỬA LỖI Ô LỊCH SỬ (hModal) - QUÁ NHỎ/ỐM */
+    /* 2. SỬA LỖI Ô LỊCH SỬ (hModal) - LÀM MẬP RA */
     #hModal .modal-box {
-        max-width: 900px !important; /* Mở rộng ra to rõ */
+        width: 95% !important;
+        max-width: 1100px !important; /* Mập ra trên iPad */
         height: 85vh !important;
     }
 
-    /* 3. SỬA LỖI Ô KHÁM BỆNH (vModal) & NGÀY KHÁM LỆCH */
+    /* 3. SỬA LỖI Ô KHÁM BỆNH (vModal) */
     #vModal .modal-box {
         max-width: 1200px !important;
         height: 90vh !important;
@@ -507,13 +525,11 @@ body {
         padding: 10px;
     }
     
-    /* Gom nhóm Ngày và Chẩn đoán vào một khối thống nhất */
     #step1 > div:nth-child(1), /* Ngày khám */
     #step1 > div:nth-child(2) { /* Chẩn đoán */
         width: 100%;
     }
     
-    /* Sinh hiệu grid 2x2 đẹp hơn */
     .vital-grid {
         margin-top: 0;
         grid-template-columns: 1fr 1fr;
@@ -527,7 +543,7 @@ body {
         grid-template-columns: repeat(3, 1fr);
         gap: 25px;
     }
-    #step2 > div:last-child { grid-column: 1 / -1; } /* Mạch chẩn full */
+    #step2 > div:last-child { grid-column: 1 / -1; }
 
     /* STEP 3: Thuốc 3 cột song song */
     #step3 {
@@ -543,7 +559,6 @@ body {
         display: flex;
         flex-direction: column;
     }
-    /* Tổng tiền full width dưới cùng */
     #step3 .bg-\[\#efebe9\] {
         grid-column: 1 / -1;
         margin-top: auto;
