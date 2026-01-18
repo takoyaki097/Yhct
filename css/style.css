@@ -1,4 +1,4 @@
-/* --- STYLE CSS (FINAL FIX - STRICTLY REQUESTED CHANGES) --- */
+/* --- LIQUID JADE & SONG DYNASTY STYLE (FINAL TWEAK) --- */
 
 /* 1. ROOT VARIABLES */
 :root {
@@ -18,6 +18,7 @@
     --shadow-soft: 0 8px 24px rgba(93, 64, 55, 0.06);
     --glass-border: 1px solid rgba(255, 255, 255, 0.4);
     
+    /* Biến Blur động */
     --header-blur: 10px;
 }
 
@@ -64,6 +65,7 @@ body {
 
 .header-card {
     background: rgba(255, 255, 255, 0.9);
+    /* Blur nền chính: Dựa vào biến JS chỉnh */
     backdrop-filter: blur(var(--header-blur));
     -webkit-backdrop-filter: blur(var(--header-blur));
     border: 1px solid rgba(255, 255, 255, 0.8);
@@ -76,44 +78,70 @@ body {
     margin-bottom: 10px; transition: all 0.4s ease;
 }
 
+/* Header trong suốt (khi có ảnh nền) */
 .header-card.transparent-mode {
-    background: rgba(255, 255, 255, 0.15); 
+    background: rgba(255, 255, 255, 0.15); /* Giảm nền trắng xuống để thấy ảnh rõ hơn */
     border: 1px solid rgba(255, 255, 255, 0.3);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
-#headerInfoBox {
-    background-color: rgba(62, 39, 35, 0.05);
-    border: 1px solid rgba(62, 39, 35, 0.1);
-    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-    box-shadow: inset 0 1px 15px rgba(0,0,0,0.05);
-    border-radius: 12px; transition: all 0.3s ease;
+/* --- TÙY CHỈNH HỘP THÔNG TIN (INFO BOX) --- */
+.header-info-box {
+    /* 1. NỀN TỐI HƠN: Màu nâu gỗ với độ trong suốt 30% -> Tạo độ sâu rõ rệt */
+    background-color: rgba(62, 39, 35, 0.3) !important;
+    
+    /* 2. VIỀN RÕ HƠN */
+    border: 1px solid rgba(62, 39, 35, 0.25) !important;
+    
+    /* 3. BLUR CỘNG DỒN: Blur của con sẽ đè lên blur của cha -> Mờ hơn hẳn */
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    
+    /* 4. ĐỔ BÓNG TRONG */
+    box-shadow: inset 0 1px 15px rgba(0,0,0,0.1);
+    
+    border-radius: 12px;
+    transition: all 0.3s ease;
 }
 
+/* CẤU HÌNH TIÊU ĐỀ */
 #displayTitle {
-    white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap !important; 
+    overflow: hidden;
+    text-overflow: ellipsis;
     font-size: clamp(1.2rem, 4vw, 1.875rem) !important; 
-    line-height: 1.2; display: block; width: 100%;
+    line-height: 1.2;
+    display: block;
+    width: 100%;
 }
 
-#mainHeaderCard, #mainHeaderCard span, #mainHeaderCard p, #mainHeaderCard h1 {
-    color: #3e2723; opacity: 1; text-shadow: none;
+/* Các nhãn trong Header */
+#mainHeaderCard, 
+#mainHeaderCard span, 
+#mainHeaderCard p, 
+#mainHeaderCard h1, 
+#mainHeaderCard div {
+    color: #3e2723; /* Màu mặc định */
+    opacity: 1; 
+    text-shadow: none;
 }
 
 #monthLabel {
     font-size: 11px !important; font-weight: 800 !important;
-    text-transform: uppercase; margin-bottom: 4px; letter-spacing: 1px;
-    text-align: center; opacity: 1;
+    text-transform: uppercase;
+    margin-bottom: 4px; letter-spacing: 1px;
+    text-align: center; opacity: 1; transition: color 0.3s ease;
 }
 
 #profitLabel {
     min-width: 130px; display: inline-block; text-align: center;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: middle;
     font-weight: 900 !important;
 }
 
 #mainHeaderCard .text-xs { font-weight: 600 !important; }
 .header-sep-line { border-color: rgba(62, 39, 35, 0.3) !important; }
+
 
 /* 4. SEARCH & MENU */
 #menuContainer {
@@ -136,7 +164,8 @@ body {
 }
 #search:focus { transform: translateY(-2px); box-shadow: var(--shadow-float); border-color: var(--song-wood); }
 
-/* 5. BUTTONS */
+
+/* 5. BUTTONS (LIQUID GLASS) */
 .btn-glass {
     background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(245, 240, 230, 0.8) 100%);
     border: 1px solid #fff; color: var(--song-wood);
@@ -154,6 +183,7 @@ body {
     transition: all 0.2s; cursor: pointer;
 }
 .btn-primary:active { transform: scale(0.96); opacity: 0.95; }
+
 
 /* 6. PATIENT LIST */
 .patient-row {
@@ -182,6 +212,7 @@ body {
 .act-edit { background: linear-gradient(145deg, rgba(225, 214, 194, 0.9), rgba(199, 183, 158, 0.8)); color: #5d4037; border: 1px solid rgba(255, 255, 255, 0.4); }
 .act-exam { background: linear-gradient(145deg, rgba(141, 110, 99, 0.95), rgba(93, 64, 55, 0.9)); color: #fdfbf7; width: 65px; box-shadow: 0 4px 10px rgba(93, 64, 55, 0.25), inset 0 1px 0 rgba(255,255,255,0.25); z-index: 2; border: 1px solid rgba(161, 136, 127, 0.5); }
 .act-del { background: linear-gradient(145deg, rgba(215, 204, 200, 0.9), rgba(188, 170, 164, 0.8)); color: #c62828; border: 1px solid rgba(255, 255, 255, 0.3); }
+
 
 /* 7. MODAL SYSTEM */
 .modal {
@@ -215,7 +246,10 @@ body {
     text-transform: uppercase; letter-spacing: 1px; margin: 0;
 }
 
+
 /* 8. GIAO DIỆN KHÁM BỆNH & COMPONENTS */
+
+/* TABS */
 .tabs {
     display: flex; gap: 10px; padding: 15px 20px;
     background: #fbf8f5; border-bottom: 1px solid #efebe9;
@@ -232,6 +266,7 @@ body {
     box-shadow: 0 4px 12px rgba(93, 64, 55, 0.3);
 }
 
+/* SINH HIỆU GRID */
 .vital-grid {
     display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
     background: #fff; border: 1px solid #d7ccc8; border-radius: 20px;
@@ -251,17 +286,26 @@ body {
     box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
 }
 
-.chip-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+/* TỨ CHẨN CHIPS */
+.chip-container {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;
+}
 .tuchan-chip {
     padding: 6px 12px; border: 1px solid #d7ccc8; border-radius: 16px;
     font-size: 12px; background: #fff; color: #5d4037; cursor: pointer; white-space: normal;
 }
 .tuchan-chip.active { background: #5d4037; color: #fff; border-color: #5d4037; }
 
+/* THỦ THUẬT CARD */
 .proc-card {
-    background: #fff; border: 1px solid #e0e0e0; border-radius: 16px;
-    padding: 16px; margin-bottom: 16px; position: relative;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.03); transition: all 0.2s;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 16px;
+    position: relative;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    transition: all 0.2s;
 }
 .proc-card:hover { box-shadow: 0 8px 20px rgba(93, 64, 55, 0.08); border-color: #d7ccc8; }
 
@@ -270,8 +314,31 @@ body {
     width: 24px; height: 24px; border-radius: 50%;
     background: #ffebee; color: #c62828; border: 1px solid #ffcdd2;
     font-size: 14px; line-height: 22px; text-align: center; cursor: pointer;
+    transition: all 0.2s;
+}
+.proc-del-btn:hover { background: #ef9a9a; color: #fff; }
+
+.proc-input-group { display: flex; flex-direction: column; }
+.proc-input-group label {
+    font-size: 9px; text-transform: uppercase; font-weight: 700;
+    color: #a1887f; margin-bottom: 4px; text-align: center;
+}
+.proc-input {
+    width: 100%; height: 40px; border-radius: 10px;
+    border: 1px solid #e0e0e0; background: #fff;
+    font-size: 15px; color: #3e2723; text-align: center;
+    outline: none; transition: border 0.2s;
+}
+.proc-input:focus { border-color: #8d6e63; background: #fff; }
+
+.proc-total-display {
+    background: #f5f5f5; border: 1px solid #e0e0e0;
+    font-family: 'Noto Sans', sans-serif;
+    display: flex; align-items: center; justify-content: center;
+    height: 40px; border-radius: 10px; font-weight: bold; color: #3e2723;
 }
 
+/* THẺ THUỐC */
 #step3 .bg-white.p-4 {
     border-radius: 20px; border: 1px solid #efebe9;
     box-shadow: 0 6px 20px rgba(62, 39, 35, 0.05); margin-bottom: 20px; overflow: hidden;
@@ -283,6 +350,7 @@ body {
     background: #faf8f5; padding: 12px 16px; border-radius: 16px 16px 0 0;
 }
 
+/* INPUTS & CHIPS CHUNG */
 .song-input {
     background: #fff; border: 1px solid #d7ccc8; color: #3e2723;
     border-radius: 12px; padding: 12px 14px; outline: none; transition: all 0.3s;
@@ -309,9 +377,11 @@ body {
     box-shadow: 0 4px 10px rgba(93, 64, 55, 0.3); transform: translateY(-1px);
 }
 
+/* AI BOX */
 #suggestedSymptomsBox { background: #f1f8e9; border: 1px dashed #aed581; border-radius: 16px; padding: 12px 16px; margin-bottom: 12px; }
 #suggestedSymptomsBox label.song-label { color: #558b2f !important; margin-bottom: 10px; border-bottom: none !important; }
 
+/* CHIPS */
 .med-chip {
     display: inline-block; padding: 8px 16px; border-radius: 24px;
     font-size: 13px; font-weight: 600; margin-right: 8px; margin-bottom: 8px;
@@ -319,12 +389,20 @@ body {
     background: #fff; border: 1px solid #d7ccc8; color: #5d4037;
 }
 .med-chip:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(93, 64, 55, 0.15); border-color: #8d6e63; }
+.med-chip:active { transform: scale(0.95); background: #efebe9; }
+
+#symptomButtons .med-chip { background: #fff; border: 1px solid #c5e1a5; color: #33691e; }
+#symptomButtons .med-chip:hover { background: #f1f8e9; border-color: #7cb342; }
+
+#eastPresetButtons { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; }
 .med-chip.active-preset {
     background: linear-gradient(145deg, #6d4c41, #3e2723) !important;
     color: #f2ebe0 !important; border: none !important;
-    box-shadow: 0 4px 12px rgba(62, 39, 35, 0.4) !important; padding-left: 20px; padding-right: 20px;
+    box-shadow: 0 4px 12px rgba(62, 39, 35, 0.4) !important;
+    padding-left: 20px; padding-right: 20px;
 }
 
+/* 9. MONTH CHIPS */
 #monthFilterArea { padding: 10px 4px 16px 4px; display: flex; gap: 8px; overflow-x: auto; margin-bottom: 10px; }
 .month-chip {
     padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 600;
@@ -336,23 +414,52 @@ body {
     box-shadow: 0 4px 12px rgba(93, 64, 55, 0.4);
 }
 
+/* 10. UTILS */
 .hidden { display: none !important; }
 .ipad-input-fix { -webkit-user-select: text !important; user-select: text !important; }
 ::-webkit-scrollbar { display: none; }
+
 #numberPadModal.modal { z-index: 3000 !important; }
 #printModal.modal { z-index: 4000 !important; }
+.dot { transition: background 0.2s; }
 
-/* 11. COLOR PALETTE */
-.color-swatch-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 10px; }
+/* 11. MERGED INLINE STYLES */
+/* Hiệu ứng highlight cho AI gợi ý */
+.highlight-suggestion {
+    animation: pulse-gold 2s infinite;
+    border-color: #fdd835 !important;
+    background-color: #fff9c4 !important;
+    box-shadow: 0 0 10px rgba(253, 216, 53, 0.5);
+}
+@keyframes pulse-gold {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+/* Ẩn thanh cuộn nhưng vẫn cuộn được */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* 12. COLOR PALETTE SWATCHES */
+.color-swatch-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-top: 10px;
+}
 .color-swatch {
-    width: 100%; aspect-ratio: 1; border-radius: 50%; cursor: pointer;
-    border: 2px solid transparent; transition: transform 0.2s, border-color 0.2s;
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform 0.2s, border-color 0.2s;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 .color-swatch:hover { transform: scale(1.1); }
 .color-swatch.active { border-color: #3e2723; transform: scale(1.15); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
 
-/* 12. PRINT STYLES */
+/* 13. PRINT STYLES */
 @media print {
     body * { visibility: hidden; }
     #printArea, #printArea * { visibility: visible; }
@@ -360,100 +467,4 @@ body {
     .print-section { display: block !important; }
     .hidden-print { display: none !important; }
     .print-section.hidden { display: none !important; }
-}
-
-/* 13. TOAST NOTIFICATIONS */
-#toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 5000; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 350px; pointer-events: none; }
-.toast { background: white; border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transform: translateY(-20px); opacity: 0; transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55); pointer-events: auto; border-left: 5px solid #5d4037; }
-.toast.show { transform: translateY(0); opacity: 1; }
-.toast.hide { transform: translateY(-20px); opacity: 0; }
-.toast-success { border-left-color: #2e7d32; }
-.toast-error { border-left-color: #c62828; }
-.toast-warning { border-left-color: #f9a825; }
-.toast-icon { font-size: 20px; }
-.toast-content { font-size: 14px; color: #3e2723; font-weight: 500; }
-
-/* ============================================================
-   14. IPAD AIR 5 / DESKTOP LANDSCAPE (FIXED ONLY REQUESTS)
-   (Kích hoạt khi màn hình rộng > 1024px)
-   ============================================================ */
-@media (min-width: 1024px) {
-
-    /* A. HEADER & LAYOUT (CÂN ĐỐI HƠN) */
-    body { padding-bottom: 40px; background-attachment: fixed; }
-
-    #mainHeader {
-        min-height: 250px !important; /* Dài hơn chút */
-        padding-top: 40px !important; 
-        padding-bottom: 50px !important;
-        border-radius: 0 0 50px 50px !important; 
-    }
-    #headerOverlay { border-radius: 0 0 50px 50px !important; }
-
-    .header-card {
-        width: 95% !important; /* Nới rộng ra */
-        max-width: 1100px !important; 
-        padding: 25px 40px !important;
-        margin-top: 10px !important; 
-    }
-
-    #displayTitle { font-size: 2.5rem !important; margin-bottom: 10px; }
-
-    /* Hộp ngày tháng dàn ngang */
-    #headerInfoBox {
-        display: flex; flex-direction: row; gap: 30px;
-        align-items: center; background: rgba(62, 39, 35, 0.08);
-        padding: 12px 20px !important;
-    }
-    #headerInfoBox > div { margin-bottom: 0 !important; }
-
-    .max-w-3xl { max-width: 1100px !important; width: 95%; }
-
-    /* B. SỬA LỖI Ô NHẬP LIỆU BỆNH NHÂN SÁT MÉP (#pModal) */
-    #pModal .modal-box {
-        max-width: 600px !important; /* Mở rộng chiều ngang */
-        width: 90% !important;
-    }
-    #pModal .modal-body {
-        padding: 30px 40px !important; /* Tăng khoảng cách lề trong (Padding) */
-    }
-
-    /* C. LÀM "MẬP" Ô LỊCH SỬ (#hModal) */
-    #hModal .modal-box {
-        width: 90% !important;
-        max-width: 900px !important; /* To hơn nhiều */
-        height: 80vh !important;
-    }
-
-    /* D. SỬA LỖI Ô NGÀY KHÁM LỆCH (#vModal) */
-    #vModal .modal-box {
-        max-width: 1000px !important;
-        height: 90vh !important;
-    }
-
-    /* Chia lại bố cục Step 1 để ô ngày khám ngắn lại */
-    #step1 {
-        display: grid;
-        grid-template-columns: 1fr 1fr; /* Chia đôi màn hình */
-        gap: 20px;
-    }
-    
-    /* Ô Ngày khám nằm gọn ở cột trái */
-    #step1 > div:nth-child(1) { 
-        grid-column: 1 / 2; 
-    }
-    
-    /* Các ô Chẩn đoán, Triệu chứng... bung ra full dòng cho đẹp */
-    #step1 > div:nth-child(2), 
-    #step1 > div:nth-child(3), 
-    #step1 > div:nth-child(4) { 
-        grid-column: 1 / -1; 
-    }
-
-    /* Sinh hiệu cũng chia đôi */
-    .vital-grid {
-        grid-column: 1 / -1;
-        display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
-        margin-top: 0;
-    }
 }
