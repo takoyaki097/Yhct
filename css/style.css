@@ -1,4 +1,4 @@
-/* --- LIQUID JADE & SONG DYNASTY STYLE (FINAL TWEAK) --- */
+/* --- LIQUID JADE & SONG DYNASTY STYLE (UPDATED FULL) --- */
 
 /* 1. ROOT VARIABLES */
 :root {
@@ -65,7 +65,7 @@ body {
 
 .header-card {
     background: rgba(255, 255, 255, 0.9);
-    /* Blur nền chính: Dựa vào biến JS chỉnh */
+    /* Blur nền chính */
     backdrop-filter: blur(var(--header-blur));
     -webkit-backdrop-filter: blur(var(--header-blur));
     border: 1px solid rgba(255, 255, 255, 0.8);
@@ -78,28 +78,20 @@ body {
     margin-bottom: 10px; transition: all 0.4s ease;
 }
 
-/* Header trong suốt (khi có ảnh nền) */
+/* Header trong suốt */
 .header-card.transparent-mode {
-    background: rgba(255, 255, 255, 0.15); /* Giảm nền trắng xuống để thấy ảnh rõ hơn */
+    background: rgba(255, 255, 255, 0.15); 
     border: 1px solid rgba(255, 255, 255, 0.3);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
-/* --- TÙY CHỈNH HỘP THÔNG TIN (INFO BOX) --- */
+/* TÙY CHỈNH HỘP THÔNG TIN (INFO BOX) */
 .header-info-box {
-    /* 1. NỀN TỐI HƠN: Màu nâu gỗ với độ trong suốt 30% -> Tạo độ sâu rõ rệt */
     background-color: rgba(62, 39, 35, 0.3) !important;
-    
-    /* 2. VIỀN RÕ HƠN */
     border: 1px solid rgba(62, 39, 35, 0.25) !important;
-    
-    /* 3. BLUR CỘNG DỒN: Blur của con sẽ đè lên blur của cha -> Mờ hơn hẳn */
     backdrop-filter: blur(12px) !important;
     -webkit-backdrop-filter: blur(12px) !important;
-    
-    /* 4. ĐỔ BÓNG TRONG */
     box-shadow: inset 0 1px 15px rgba(0,0,0,0.1);
-    
     border-radius: 12px;
     transition: all 0.3s ease;
 }
@@ -115,13 +107,12 @@ body {
     width: 100%;
 }
 
-/* Các nhãn trong Header */
 #mainHeaderCard, 
 #mainHeaderCard span, 
 #mainHeaderCard p, 
 #mainHeaderCard h1, 
 #mainHeaderCard div {
-    color: #3e2723; /* Màu mặc định */
+    color: #3e2723; 
     opacity: 1; 
     text-shadow: none;
 }
@@ -185,7 +176,21 @@ body {
 .btn-primary:active { transform: scale(0.96); opacity: 0.95; }
 
 
-/* 6. PATIENT LIST */
+/* 6. PATIENT LIST & HISTORY */
+/* Container cho danh sách lịch sử/bệnh nhân - FIX LỖI NGẮN QUÁ */
+.list-viewport {
+    height: 65vh; /* Chiếm 65% màn hình */
+    min-height: 500px; /* Đảm bảo tối thiểu 500px để hiển thị nhiều tin */
+    overflow-y: auto; 
+    padding: 10px;
+    padding-right: 5px; /* Chừa chỗ cho scrollbar */
+    padding-bottom: 60px; /* Để không bị nút che mất */
+    /* Tạo viền nhẹ khu vực danh sách để phân biệt */
+    border: 1px dashed rgba(141, 110, 99, 0.2);
+    border-radius: 16px;
+    margin-top: 10px;
+}
+
 .patient-row {
     background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px);
     border: 1px solid rgba(255,255,255,0.6); border-left: 5px solid #8d6e63;
@@ -214,7 +219,7 @@ body {
 .act-del { background: linear-gradient(145deg, rgba(215, 204, 200, 0.9), rgba(188, 170, 164, 0.8)); color: #c62828; border: 1px solid rgba(255, 255, 255, 0.3); }
 
 
-/* 7. MODAL SYSTEM */
+/* 7. MODAL SYSTEM (ĐÃ CHỈNH SỬA) */
 .modal {
     position: fixed; inset: 0; background: rgba(44, 41, 38, 0.75);
     backdrop-filter: blur(6px); transition: all 0.3s;
@@ -223,16 +228,35 @@ body {
 }
 .modal.active { opacity: 1; visibility: visible; pointer-events: auto; }
 
+/* FIX LỖI: Bảng quá nhỏ -> Tăng width và max-width */
 .modal-box {
-    background: #fcfbf8; border-radius: var(--radius-lg);
+    background: #fcfbf8; 
+    border-radius: var(--radius-lg);
     box-shadow: 0 25px 80px rgba(0,0,0,0.5);
-    border: 1px solid rgba(255,255,255,0.6); overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.6); 
+    overflow: hidden;
+    
+    /* Kích thước mới rộng rãi hơn */
+    width: 95%; 
+    max-width: 800px; /* Tăng từ mặc định lên 800px */
+    max-height: 90vh; /* Không bao giờ vượt quá 90% màn hình */
+    
+    display: flex; 
+    flex-direction: column; /* Để header/footer cố định, nội dung cuộn */
 }
 
 .modal-header {
     background: #f2ebe0; padding: 20px 24px;
     border-bottom: 1px dashed #bcaaa4;
     display: flex; justify-content: space-between; align-items: center;
+    flex-shrink: 0;
+}
+
+/* FIX LỖI: Trường nhập liệu sát mép -> Thêm class body có padding */
+.modal-body {
+    padding: 30px; /* Khoảng cách thoáng đãng */
+    overflow-y: auto; /* Cuộn dọc nếu nội dung dài */
+    flex: 1; /* Chiếm hết khoảng trống còn lại */
 }
 
 .modal-footer {
@@ -240,6 +264,7 @@ body {
     gap: 12px; padding: 20px 24px; background: #f2ebe0;
     border-top: 1px dashed #bcaaa4;
     border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    flex-shrink: 0;
 }
 .modal-footer button {
     flex: 1; height: 50px; font-size: 14px;
@@ -264,6 +289,17 @@ body {
 .tab-btn.active {
     background: #5d4037; color: #fff;
     box-shadow: 0 4px 12px rgba(93, 64, 55, 0.3);
+}
+
+/* FORM GRID - FIX LỖI NGÀY KHÁM DÀI HƠN */
+.form-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Chia 2 cột đều nhau */
+    gap: 20px;
+    margin-bottom: 15px;
+}
+@media (max-width: 600px) {
+    .form-grid-2 { grid-template-columns: 1fr; } /* Mobile về 1 cột */
 }
 
 /* SINH HIỆU GRID */
@@ -355,11 +391,20 @@ body {
     background: #fff; border: 1px solid #d7ccc8; color: #3e2723;
     border-radius: 12px; padding: 12px 14px; outline: none; transition: all 0.3s;
     box-shadow: inset 0 2px 4px rgba(62,39,35,0.02); width: 100%;
+    /* Đảm bảo chiều cao input đồng nhất */
+    min-height: 46px; 
 }
 .song-input:focus { background: #fff; border-color: #8d6e63; box-shadow: 0 0 0 3px rgba(141, 110, 99, 0.15); }
 .song-label {
     font-size: 11px; font-weight: 700; color: #795548;
     text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px; display: block;
+}
+
+/* Đảm bảo input Date hiển thị đúng chuẩn */
+input[type="date"].song-input {
+    display: block;
+    width: 100%;
+    font-family: 'Noto Sans', sans-serif;
 }
 
 .med-usage-row {
