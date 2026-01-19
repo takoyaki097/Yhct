@@ -1,7 +1,7 @@
 /**
  * FILE: js/knowledge-time.js
  * CHỨC NĂNG: Bộ máy tính toán thời gian & Y Lý (TCM Time Engine).
- * PHIÊN BẢN: 2.0 (Full Features)
+ * PHIÊN BẢN: 2.1 (Fixed Undefined Bug)
  * * MODULES:
  * 1. knowledge.lunar: Lịch Âm, Can Chi (Năm, Tháng, Ngày).
  * 2. knowledge.yunQi: Ngũ Vận Lục Khí (Khí hậu năm).
@@ -187,6 +187,10 @@ window.knowledge.ziWuFlow = {
         const specialPoints = this.getSpecialPoints(activeMeridian);
         
         return {
+            // [UPDATED] Thêm 2 thuộc tính Can, Chi để Header sử dụng
+            can: currentStem,
+            chi: currentBranch,
+
             time: `${hour}h (${currentStem} ${currentBranch})`,
             meridian: activeMeridian.name,
             element: activeMeridian.element,

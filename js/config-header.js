@@ -1,7 +1,7 @@
 /**
  * FILE: js/config-header.js
  * CHỨC NĂNG: Quản lý hiển thị Header, Ảnh nền, QR Code và Bảo mật Doanh thu.
- * CẬP NHẬT: Tinh chỉnh độ nhạy Blur và tạo sự tách biệt rõ ràng cho ô con (Shadow/Border).
+ * CẬP NHẬT: Fix lỗi hiển thị "Giờ undefined" (Đồng bộ với knowledge-time.js).
  */
 
 window.updateHeader = function() { 
@@ -13,7 +13,7 @@ window.updateHeader = function() {
     const drEl = document.getElementById('displayDoctor');
     if(drEl) drEl.innerHTML = `<span class="text-xs font-bold uppercase block opacity-80 mb-1">Xin chào,</span><span class="font-black text-xl">BS. ${drName}</span>`;
     
-    // B. Cập nhật thông tin chuyên môn (Giữ nguyên)
+    // B. Cập nhật thông tin chuyên môn (ĐÃ SỬA LỖI TẠI ĐÂY)
     if (window.knowledge) {
         if (window.knowledge.lunar) {
             const lunar = window.knowledge.lunar.getLunarDetails();
@@ -26,7 +26,9 @@ window.updateHeader = function() {
         }
         if (window.knowledge.ziWuFlow) {
             const ziWu = window.knowledge.ziWuFlow.getCurrentFlow();
-            document.getElementById('headerZiWu').innerText = `Giờ ${ziWu.branch}: ${ziWu.msg}`;
+            // FIX: Thay ziWu.branch (không tồn tại) thành ziWu.can + ziWu.chi
+            // Kết quả sẽ ra: "Giờ Bính Dần: Giờ Dần vượng Phế..."
+            document.getElementById('headerZiWu').innerText = `Giờ ${ziWu.can} ${ziWu.chi}: ${ziWu.msg}`;
         }
     }
 
@@ -48,7 +50,7 @@ window.updateHeader = function() {
         profitBox.style.borderColor = window.config.profitBgColor;
     }
     
-    // D. XỬ LÝ BLUR & TÁCH BIỆT (PHẦN QUAN TRỌNG ĐÃ SỬA)
+    // D. XỬ LÝ BLUR & TÁCH BIỆT (Giữ nguyên logic bạn đã viết)
     const header = document.getElementById('mainHeader');
     const overlay = document.getElementById('headerOverlay');
     const infoBox = document.getElementById('headerInfoBox');

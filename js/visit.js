@@ -1,7 +1,7 @@
 /**
  * FILE: visit.js
  * CHỨC NĂNG: Quản lý quy trình Khám bệnh, Kê đơn, Thủ thuật & AI.
- * PHIÊN BẢN: Full (Không nén) - Tích hợp Knowledge Base mới.
+ * PHIÊN BẢN: 2.2 (Fix lỗi hiển thị Giờ Can Chi trong Modal Huyệt)
  */
 
 // --- 1. KHỞI TẠO BIẾN TRẠNG THÁI ---
@@ -97,7 +97,7 @@ window.startVisit = function(pid, vid=null) {
     
     // Reset Dữ liệu
     window.currentVisit = { 
-        step: 1, rxEast: [], rxWest: [], procs: [], acupoints: [],
+        step: 1, step: 1, rxEast: [], rxWest: [], procs: [], acupoints: [],
         manualMedTotalEast: 0, manualMedTotalWest: 0,
         eastDays: 1, westDays: 1,
         eastNote: "", westNote: "",
@@ -308,11 +308,12 @@ window.openAcupointModal = function() {
     window.filterAcupointGrid('region', 'all');
     window.refreshAiSuggestion(true); // Cập nhật AI để highlight
     
-    // Hiển thị giờ Tí Ngọ trong Modal
+    // Hiển thị giờ Tí Ngọ trong Modal - [SỬA LỖI TẠI ĐÂY]
     const timeInfo = window.knowledge.ziWuFlow ? window.knowledge.ziWuFlow.getCurrentFlow() : null;
     const subLabel = document.getElementById('acuTimeSuggestion');
     if(subLabel && timeInfo) {
-        subLabel.innerText = `Giờ ${timeInfo.branch}: Huyệt Khai ${timeInfo.openPoint}`;
+        // [ĐÃ FIX]: Sử dụng timeInfo.can và timeInfo.chi
+        subLabel.innerText = `Giờ ${timeInfo.can} ${timeInfo.chi}: Huyệt Khai ${timeInfo.openPoint}`;
     }
     
     document.getElementById('acupointModal').classList.add('active');
@@ -501,7 +502,8 @@ window.updateYunQiDisplay = function() {
         const timeInfo = window.knowledge.ziWuFlow ? window.knowledge.ziWuFlow.getCurrentFlow() : null;
         
         let html = `<span class="text-[#3e2723] font-bold">${yearInfo.text}</span>`;
-        if (timeInfo) html += ` • <span class="text-[#1b5e20] font-bold">Giờ ${timeInfo.branch} (${timeInfo.meridian})</span>`;
+        // [ĐÃ FIX]: Thay timeInfo.branch thành timeInfo.can và timeInfo.chi
+        if (timeInfo) html += ` • <span class="text-[#1b5e20] font-bold">Giờ ${timeInfo.can} ${timeInfo.chi} (${timeInfo.meridian})</span>`;
         
         label.innerHTML = html;
         label.title = timeInfo ? timeInfo.msg : "";
