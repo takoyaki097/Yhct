@@ -537,3 +537,138 @@ input[type="date"].song-input {
     .hidden-print { display: none !important; }
     .print-section.hidden { display: none !important; }
 }
+
+/* ==========================================================================
+   14. WIDGET ĐỒNG HỒ MINI (BÊN NGOÀI)
+   ========================================================================== */
+#miniBioClockWidget {
+    animation: floatWidget 6s ease-in-out infinite;
+}
+
+@keyframes floatWidget {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); } /* Nổi nhẹ lên */
+    100% { transform: translateY(0px); }
+}
+
+#miniBioClockWidget:active {
+    transform: scale(0.95) !important; /* Hiệu ứng nhấn */
+}
+
+/* ==========================================================================
+   15. MODAL ĐỒNG HỒ SINH HỌC (GIAO DIỆN MỚI - MINIMALISM)
+   ========================================================================== */
+
+/* Nền Modal bao trùm: Blur nhẹ */
+.bio-modal-backdrop {
+    background: rgba(20, 15, 10, 0.6) !important; /* Nền tối nhẹ */
+    backdrop-filter: blur(8px); /* Làm mờ cảnh vật phía sau */
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999 !important;
+}
+
+/* Container chính căn giữa */
+.bio-modal-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    padding: 20px;
+}
+
+/* Nút đóng đẹp hơn */
+.bio-close-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 28px;
+    border: 1px solid rgba(255,255,255,0.2);
+    cursor: pointer;
+    z-index: 50;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+}
+.bio-close-btn:hover {
+    background: rgba(183, 28, 28, 0.8);
+    transform: rotate(90deg);
+}
+
+/* Hiệu ứng bóng đổ cho đồng hồ để nổi bật trên nền */
+.bio-clock-wrapper {
+    position: relative;
+    margin-bottom: 30px; /* Cách bảng thông tin ra */
+    filter: drop-shadow(0 20px 50px rgba(0,0,0,0.5));
+    transition: transform 0.3s;
+}
+.bio-clock-wrapper:hover {
+    transform: scale(1.02);
+}
+
+/* QUAN TRỌNG: Cắt ảnh thành hình tròn để mất rìa ô vuông */
+.bio-clock-wrapper img {
+    border-radius: 50%; 
+    /* Nếu ảnh vẫn còn viền trắng nhỏ, ta dùng clip-path để cắt sâu vào 1 xíu */
+    clip-path: circle(49.5% at 50% 50%); 
+}
+
+/* Bảng thông tin kính mờ (Glassmorphism) */
+.bio-info-card {
+    background: rgba(30, 20, 10, 0.75); /* Nền nâu đen đậm */
+    backdrop-filter: blur(15px); /* Blur đậm hơn nền modal */
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 236, 179, 0.2); /* Viền vàng nhạt */
+    border-radius: 24px;
+    padding: 20px 30px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    text-align: center;
+    animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Cập nhật Style cho Múi giờ (Transparent Fix) --- */
+
+.clock-zone {
+    /* [QUAN TRỌNG] Mặc định trong suốt hoàn toàn để thấy ảnh đồng hồ bên dưới */
+    fill: rgba(0, 0, 0, 0) !important; 
+    stroke: rgba(255, 255, 255, 0.05);
+    stroke-width: 1px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+/* Khi rê chuột vào: Tối nhẹ kiểu kính râm để biết mình đang chọn */
+.clock-zone:hover {
+    fill: rgba(0, 0, 0, 0.3) !important; 
+    stroke: rgba(255, 255, 255, 0.4);
+}
+
+/* Ô ĐANG HOẠT ĐỘNG: Sáng viền vàng */
+.clock-zone.active-glow {
+    fill: rgba(255, 215, 0, 0.05) !important; /* Vàng cực nhạt bên trong */
+    stroke: #ffd700; /* Viền Vàng Kim */
+    stroke-width: 3px;
+    filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.8));
+    animation: pulse-zone 3s infinite alternate;
+}
+
+@keyframes pulse-zone {
+    0% { stroke-opacity: 0.7; filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.4)); }
+    100% { stroke-opacity: 1; filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.8)); }
+}

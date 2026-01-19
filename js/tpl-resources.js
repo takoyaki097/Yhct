@@ -1,7 +1,7 @@
 /**
  * FILE: js/tpl-resources.js
  * CHỨC NĂNG: Chứa mã HTML của các công cụ tra cứu và báo cáo
- * BAO GỒM: Báo cáo (analyticsModal), Huyệt (acupointModal), Dược liệu (herbModal)
+ * BAO GỒM: Báo cáo (analyticsModal), Huyệt (acupointModal), Dược liệu (herbModal), Đồng hồ sinh học (bioClockModal)
  */
 
 window.TPL_RESOURCES = `
@@ -115,6 +115,45 @@ window.TPL_RESOURCES = `
         
         <div class="modal-footer bg-white border-t border-[#eee] justify-end">
             <button onclick="document.getElementById('herbModal').classList.remove('active')" class="btn-primary px-8 py-2">Đóng</button>
+        </div>
+    </div>
+</div>
+
+<div id="bioClockModal" class="modal bio-modal-backdrop">
+    <div class="bio-modal-container">
+        <button onclick="window.closeModals()" class="bio-close-btn">&times;</button>
+        
+        <div class="bio-clock-wrapper">
+            <div class="relative w-[320px] h-[320px] md:w-[450px] md:h-[450px]">
+                <img src="images/clock_bg.png" class="absolute top-0 left-0 w-full h-full object-cover rounded-full shadow-2xl" style="z-index: 1;">
+                
+                <svg class="absolute top-0 left-0 w-full h-full pointer-events-none" style="z-index: 2;" viewBox="0 0 500 500">
+                    <defs>
+                        <filter id="glow">
+                            <feGaussianBlur stdDeviation="4.5" result="coloredBlur"/>
+                            <feMerge>
+                                <feMergeNode in="coloredBlur"/>
+                                <feMergeNode in="SourceGraphic"/>
+                            </feMerge>
+                        </filter>
+                    </defs>
+                    <g id="clockOverlayGroup" transform="translate(250,250)"></g>
+                </svg>
+
+                <div id="clockHand" class="absolute top-1/2 left-1/2 w-1.5 h-[110px] md:h-[160px] bg-[#b71c1c] origin-bottom opacity-90 rounded-full" style="z-index: 3; transform: translate(-50%, -100%) rotate(0deg); box-shadow: 0 0 10px rgba(0,0,0,0.5);"></div>
+                <div class="absolute top-1/2 left-1/2 w-5 h-5 bg-[#b71c1c] rounded-full border-2 border-white shadow-md" style="z-index: 4; transform: translate(-50%, -50%);"></div>
+            </div>
+        </div>
+
+        <div class="bio-info-card">
+            <h2 class="text-xl md:text-2xl font-bold text-[#ffecb3] uppercase mb-1 font-serif text-center tracking-widest">Dưỡng Sinh Theo Giờ</h2>
+            <div class="w-16 h-0.5 bg-[#ffecb3] mx-auto mb-3 opacity-50"></div>
+            
+            <div class="text-center space-y-1">
+                <span class="text-3xl font-black text-white block mb-1" id="clockCurrentTime">--:--</span>
+                <span class="text-lg text-[#ffcc80] font-bold block" id="clockZoneName">Đang tải...</span>
+                <p class="text-sm md:text-base text-gray-200 italic leading-relaxed px-4" id="clockAdvice">...</p>
+            </div>
         </div>
     </div>
 </div>

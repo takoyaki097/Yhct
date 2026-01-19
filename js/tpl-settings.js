@@ -1,6 +1,9 @@
 /**
  * FILE: js/tpl-settings.js
- * CHỨC NĂNG: Chứa mã HTML của giao diện Cài đặt (sModal) và Sao lưu (backupModal)
+ * CHỨC NĂNG: Chứa mã HTML của giao diện Cài đặt (sModal), Sao lưu (backupModal) và Chi tiết bệnh (diseaseModal)
+ * CẬP NHẬT: 
+ * - Fix triệt để UI Thêm thủ thuật: Dùng container để ép ô Tên dài, ô Giá ngắn.
+ * - Đảm bảo đầy đủ Modal chi tiết bệnh để hiển thị bảng triệu chứng/đơn thuốc.
  */
 
 window.TPL_SETTINGS = `
@@ -96,18 +99,35 @@ window.TPL_SETTINGS = `
             <div id="tabMed" class="settings-panel hidden space-y-6">
                 <div>
                     <h3 class="font-bold text-[#3e2723] mb-2 uppercase border-b pb-1 text-sm">Danh sách Bệnh</h3>
-                    <div id="diseaseList" class="space-y-2 mb-3"></div>
-                    <button onclick="window.addNewDisease()" class="w-full py-3 btn-glass text-sm">+ Thêm Bệnh</button>
-                </div>
-                <div>
-                    <h3 class="font-bold text-[#3e2723] mb-2 uppercase border-b pb-1 text-sm">Thủ thuật</h3>
-                    <div id="procList" class="space-y-2 mb-3"></div>
-                    <div class="flex gap-2">
-                        <input type="text" id="newProcName" placeholder="Tên" class="song-input flex-1 ipad-input-fix">
-                        <input type="number" id="newProcPrice" placeholder="Giá" class="song-input w-24 ipad-input-fix">
-                        <button onclick="window.addProc()" class="btn-primary px-3 py-2 text-sm">Thêm</button>
+                    <div id="diseaseList" class="space-y-2 mb-3 max-h-40 overflow-y-auto pr-1"></div>
+                    
+                    <div class="flex gap-2 mt-2">
+                        <input type="text" id="newDiseaseName" placeholder="Tên bệnh mới..." class="song-input flex-1 ipad-input-fix text-sm">
+                        <button onclick="window.addNewDiseaseInline()" class="btn-primary px-4 py-2 text-sm font-bold whitespace-nowrap">Thêm</button>
                     </div>
                 </div>
+
+                <div>
+                    <h3 class="font-bold text-[#3e2723] mb-2 uppercase border-b pb-1 text-sm">Thủ thuật</h3>
+                    <div id="procList" class="space-y-2 mb-3 max-h-40 overflow-y-auto pr-1"></div>
+                    
+                    <div class="flex gap-2 mt-2 w-full items-center">
+                        <div style="flex: 7; min-width: 0;">
+                            <input type="text" id="newProcName" placeholder="Tên thủ thuật..." 
+                                   class="song-input ipad-input-fix text-sm" 
+                                   style="width: 100% !important;">
+                        </div>
+                        
+                        <div style="flex: 3; min-width: 80px; max-width: 100px;">
+                            <input type="number" id="newProcPrice" placeholder="Giá" 
+                                   class="song-input ipad-input-fix text-sm text-center" 
+                                   style="width: 100% !important;">
+                        </div>
+                        
+                        <button onclick="window.addProc()" class="btn-primary px-4 py-2 text-sm font-bold whitespace-nowrap">Thêm</button>
+                    </div>
+                </div>
+
                 <div>
                     <h3 class="font-bold text-[#3e2723] mb-2 uppercase border-b pb-1 text-sm">Cấu hình Tứ chẩn</h3>
                     <div class="space-y-3">
@@ -207,6 +227,57 @@ window.TPL_SETTINGS = `
         </div>
         <div class="modal-footer p-4 bg-[#f2ebe0] border-t border-[#d7ccc8] text-center">
             <button onclick="window.closeModals()" class="btn-glass w-full">Đóng</button>
+        </div>
+    </div>
+</div>
+
+<div id="diseaseModal" class="modal" style="z-index: 2200;">
+    <div class="modal-box w-full max-w-2xl h-[95vh] flex flex-col bg-[#fffcf7]">
+        <div class="modal-header bg-[#f2ebe0] border-b border-[#d7ccc8]">
+            <h2 id="diseaseModalTitle" class="font-bold text-xl text-[#3e2723]">Thêm bệnh mới</h2>
+            <button onclick="window.closeDiseaseModal()" class="text-2xl cursor-pointer">&times;</button>
+        </div>
+        
+        <div class="modal-body flex-1 overflow-y-auto p-5 space-y-5">
+            <input type="hidden" id="diseaseEditIndex">
+            
+            <div class="space-y-3">
+                <div>
+                    <label class="song-label">Tên bệnh</label>
+                    <input type="text" id="diseaseName" class="song-input ipad-input-fix font-bold text-[#5d4037]" placeholder="Nhập tên bệnh...">
+                </div>
+                <div>
+                    <label class="song-label">Triệu chứng & Ghi chú</label>
+                    <textarea id="diseaseSymptoms" class="song-input h-24 ipad-input-fix" placeholder="Mô tả triệu chứng thường gặp..."></textarea>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white p-3 rounded-xl border border-[#d7ccc8] shadow-sm flex flex-col h-full">
+                    <h3 class="font-bold text-[#3e2723] mb-2 uppercase text-sm border-b pb-1">Đông Y (Thang)</h3>
+                    
+                    <div class="mb-2">
+                        <input type="text" id="diseaseEastName" class="song-input text-sm mb-2 font-bold text-center" placeholder="Tên bài thuốc (Vd: Bài 1)">
+                    </div>
+
+                    <div id="eastIngredientsContainer" class="flex-1 space-y-1 overflow-y-auto max-h-60 p-1 bg-gray-50 rounded mb-2"></div>
+                    
+                    <button onclick="window.addEastIngredient()" class="btn-glass w-full py-2 text-sm text-[#5d4037]">+ Thêm vị thuốc</button>
+                </div>
+
+                <div class="bg-white p-3 rounded-xl border border-blue-200 shadow-sm flex flex-col h-full">
+                    <h3 class="font-bold text-blue-900 mb-2 uppercase text-sm border-b border-blue-100 pb-1">Tây Y / Thành phẩm</h3>
+                    
+                    <div id="westMedicinesContainer" class="flex-1 space-y-1 overflow-y-auto max-h-60 p-1 bg-blue-50 rounded mb-2"></div>
+                    
+                    <button onclick="window.addWestMedicine()" class="btn-glass w-full py-2 text-sm text-blue-800">+ Thêm thuốc</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal-footer border-t border-[#d7ccc8] p-3 flex justify-end gap-2 bg-[#f2ebe0]">
+            <button onclick="window.closeDiseaseModal()" class="px-4 py-2 bg-gray-200 rounded text-gray-700 font-bold">Hủy</button>
+            <button onclick="window.saveDisease()" class="px-6 py-2 btn-primary">Lưu Thay Đổi</button>
         </div>
     </div>
 </div>

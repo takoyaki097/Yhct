@@ -2,6 +2,7 @@
  * FILE: js/config-disease.js
  * CHỨC NĂNG: Quản lý Thêm/Sửa/Xóa Bệnh mẫu và Thuốc mẫu (Đông y/Tây y).
  * PHỤ THUỘC: window.config, window.tempEastOptions (từ config-core.js)
+ * CẬP NHẬT: Tự động mở Modal sau khi thêm nhanh.
  */
 
 // --- 1. QUẢN LÝ DANH SÁCH BỆNH (SETTINGS PANEL) ---
@@ -16,13 +17,13 @@ window.renderDiseaseSettings = function() {
     }
 
     l.innerHTML = window.config.diseases.map((d,i)=>`
-        <div class="flex justify-between items-center p-3 border rounded bg-white shadow-sm mb-1">
-            <div class="font-bold text-sm text-[#3e2723]">${d.name} 
-                <span class="text-xs font-normal text-gray-500">(${d.eastOptions ? d.eastOptions.length : 0} bài)</span>
+        <div class="flex justify-between items-center p-2 border border-gray-100 rounded bg-white shadow-sm mb-1 hover:bg-gray-50">
+            <div class="font-bold text-sm text-[#3e2723] truncate flex-1 pr-2">${d.name} 
+                <span class="text-[10px] font-normal text-gray-400 ml-1">(${d.eastOptions ? d.eastOptions.length : 0} bài)</span>
             </div>
-            <div class="flex gap-2">
-                <button onclick="window.editDisease(${i})" class="text-xs px-3 py-1 bg-[#efebe9] rounded font-bold text-[#5d4037] hover:bg-[#d7ccc8]">SỬA</button>
-                <button onclick="window.deleteDisease(${i})" class="text-xs px-3 py-1 bg-red-50 rounded text-red-600 hover:bg-red-100">XÓA</button>
+            <div class="flex gap-1 flex-shrink-0">
+                <button onclick="window.editDisease(${i})" class="text-[10px] px-2 py-1 bg-[#efebe9] rounded font-bold text-[#5d4037] hover:bg-[#d7ccc8] border border-[#d7ccc8]">SỬA</button>
+                <button onclick="window.deleteDisease(${i})" class="text-[10px] px-2 py-1 bg-red-50 rounded text-red-600 hover:bg-red-100 border border-red-100">XÓA</button>
             </div>
         </div>`).join(''); 
 };
@@ -35,10 +36,42 @@ window.deleteDisease = async function(i) {
     } 
 };
 
-// --- 2. MỞ/ĐÓNG MODAL BỆNH (DISEASE MODAL) ---
+// [UPDATED] HÀM THÊM BỆNH NHANH VÀ MỞ NGAY MODAL
+window.addNewDiseaseInline = async function() {
+    const input = document.getElementById('newDiseaseName');
+    if (!input) return;
+    
+    const name = input.value.trim();
+    if (!name) return alert("Vui lòng nhập tên bệnh!");
+    
+    // Tạo cấu trúc bệnh mới rỗng
+    const newDisease = {
+        name: name,
+        sym: "",
+        rxWest: [],
+        eastOptions: [{name: "Bài 1", ingredients: []}] 
+    };
+    
+    // Thêm vào config
+    if (!window.config.diseases) window.config.diseases = [];
+    window.config.diseases.push(newDisease);
+    
+    // Lưu và render lại
+    if(window.saveConfig) await window.saveConfig();
+    window.renderDiseaseSettings();
+    
+    // Reset input
+    input.value = "";
+    
+    // [QUAN TRỌNG] Mở ngay Modal sửa bệnh cho bệnh vừa thêm (là phần tử cuối cùng)
+    const newIndex = window.config.diseases.length - 1;
+    window.editDisease(newIndex);
+};
+
+// --- 2. MỞ/ĐÓNG MODAL BỆNH (DISEASE MODAL - CHI TIẾT) ---
 
 window.addNewDisease = function() { 
-    // Reset biến tạm (tempEastOptions từ config-core.js)
+    // Reset biến tạm
     window.tempEastOptions = [{name: "Bài thuốc 1", ingredients: []}];
     window.currentEastOptionIndex = 0;
     
@@ -84,7 +117,7 @@ window.editDisease = function(index) {
         window.addWestMedicine();
     }
     
-    // Load thuốc Đông Y (Deep copy để không sửa trực tiếp vào config khi chưa Lưu)
+    // Load thuốc Đông Y
     if(d.eastOptions && d.eastOptions.length) {
         window.tempEastOptions = JSON.parse(JSON.stringify(d.eastOptions));
         window.currentEastOptionIndex = 0;
@@ -129,7 +162,6 @@ window.renderEastTabsInSettings = function() {
     let t = document.getElementById('eastSettingsTabs');
     const n = document.getElementById('diseaseEastName');
     
-    // Tạo div tabs nếu chưa có
     if(!t && n && n.parentElement){
         t = document.createElement('div');
         t.id = 'eastSettingsTabs';
@@ -138,7 +170,6 @@ window.renderEastTabsInSettings = function() {
     }
     
     if(t) {
-        // Render buttons
         t.innerHTML = window.tempEastOptions.map((o,i)=>`
             <button onclick="window.switchEastPresetSettings(${i})" 
                     class="px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-colors
@@ -152,18 +183,16 @@ window.renderEastTabsInSettings = function() {
                 ''}`;
     }
     
-    // Fallback nếu data rỗng
     if(window.tempEastOptions.length === 0) {
         window.tempEastOptions = [{name: "Bài 1", ingredients: []}];
         window.currentEastOptionIndex = 0;
     }
     
-    // Render nội dung bài thuốc hiện tại
     if(window.tempEastOptions[window.currentEastOptionIndex]){
         const currentOpt = window.tempEastOptions[window.currentEastOptionIndex];
         if(n) n.value = currentOpt.name || '';
         
-        c.innerHTML = ''; // Clear cũ
+        c.innerHTML = '';
         
         if(currentOpt.ingredients.length === 0) {
             window.renderEastIngInSettings({});
@@ -198,14 +227,11 @@ window.removeCurrentEastPreset = function() {
 window.saveCurrentTabToTemp = function() {
     if(window.currentEastOptionIndex === -1 || !window.tempEastOptions[window.currentEastOptionIndex]) return;
     
-    // 1. Lưu tên bài thuốc
     const n = document.getElementById('diseaseEastName');
     if(n) window.tempEastOptions[window.currentEastOptionIndex].name = n.value.trim();
     
-    // 2. Lưu danh sách vị thuốc từ DOM
     const ig = [];
     document.querySelectorAll('#eastIngredientsContainer .med-row-grid').forEach(r => {
-        // Selector chính xác dựa trên class HTML
         const nameInput = r.querySelector('.east-ingredient-name');
         const qtyInput = r.querySelector('.east-ingredient-qty');
         const priceInput = r.querySelector('.east-ingredient-price');
@@ -278,10 +304,8 @@ window.saveDisease = async function() {
     
     const s = document.getElementById('diseaseSymptoms').value.trim();
     
-    // 1. Lưu dữ liệu tab Đông Y hiện tại vào biến tạm
     window.saveCurrentTabToTemp();
     
-    // 2. Thu thập dữ liệu Tây Y từ DOM
     const w = [];
     document.querySelectorAll('#westMedicinesContainer .med-row-grid').forEach(r => {
         const nameInput = r.querySelector('.west-medicine-name');
@@ -295,12 +319,9 @@ window.saveDisease = async function() {
         if(na) w.push({name: na, qty: q, days: 1, price: p});
     });
     
-    // 3. Chuẩn hóa dữ liệu Đông Y
-    // Lọc bỏ các bài thuốc rỗng tên (nếu cần), hoặc giữ nguyên
     let eastOpts = window.tempEastOptions;
     if(eastOpts.length === 0) eastOpts.push({name: "Bài thuốc", ingredients: []});
     
-    // 4. Tạo object Bệnh
     const d = {
         name: n,
         sym: s,
@@ -308,20 +329,14 @@ window.saveDisease = async function() {
         eastOptions: eastOpts
     };
     
-    // 5. Cập nhật vào config
     const i = document.getElementById('diseaseEditIndex').value;
     if(i !== ''){
-        window.config.diseases[i] = d; // Cập nhật
+        window.config.diseases[i] = d; 
     } else {
-        window.config.diseases.push(d); // Thêm mới
+        window.config.diseases.push(d); 
     }
     
-    // 6. Lưu xuống DB
     if(window.saveConfig) await window.saveConfig();
-    
-    // 7. Cập nhật giao diện Settings bên dưới
     window.renderDiseaseSettings();
-    
-    // 8. Đóng modal
     window.closeDiseaseModal();
 };

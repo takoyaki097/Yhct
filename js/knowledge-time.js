@@ -1,11 +1,12 @@
 /**
  * FILE: js/knowledge-time.js
  * CHỨC NĂNG: Bộ máy tính toán thời gian & Y Lý (TCM Time Engine).
- * PHIÊN BẢN: 2.1 (Fixed Undefined Bug)
+ * PHIÊN BẢN: 2.2 (Update Bio-Clock Logic)
  * * MODULES:
  * 1. knowledge.lunar: Lịch Âm, Can Chi (Năm, Tháng, Ngày).
  * 2. knowledge.yunQi: Ngũ Vận Lục Khí (Khí hậu năm).
  * 3. knowledge.ziWuFlow: Tí Ngọ Lưu Chú (Thời châm, Huyệt Bổ/Tả/Nguyên).
+ * 4. knowledge.bioClock: Đồng hồ sinh học 12 canh giờ (MỚI).
  */
 
 window.knowledge = window.knowledge || {};
@@ -187,10 +188,8 @@ window.knowledge.ziWuFlow = {
         const specialPoints = this.getSpecialPoints(activeMeridian);
         
         return {
-            // [UPDATED] Thêm 2 thuộc tính Can, Chi để Header sử dụng
             can: currentStem,
             chi: currentBranch,
-
             time: `${hour}h (${currentStem} ${currentBranch})`,
             meridian: activeMeridian.name,
             element: activeMeridian.element,
@@ -203,7 +202,6 @@ window.knowledge.ziWuFlow = {
     },
 
     // HÀM API 2: Lấy danh sách 12 canh giờ của một ngày bất kỳ (Schedule)
-    // Tham số: targetDate (Date object). Mặc định là hôm nay.
     getAllFlows: function(targetDate = new Date()) {
         const dayStemIdx = this.getDayStemIndex(targetDate);
         const branches = window.knowledge.lunar.chi;
@@ -211,15 +209,11 @@ window.knowledge.ziWuFlow = {
         const schedule = [];
 
         for (let i = 0; i < 12; i++) {
-            // Tính Can Giờ cho từng Chi (0..11)
             const hourStemIdx = this.getHourStemIdx(dayStemIdx, i);
             const currentBranch = branches[i];
             const currentStem = stems[hourStemIdx];
-
             const activeMeridian = this.meridians[currentBranch];
             const points = this.getSpecialPoints(activeMeridian);
-
-            // Format giờ hiển thị (Ví dụ Tý: 23:00 - 01:00)
             let startH = (i * 2 - 1 + 24) % 24; 
             let endH = (startH + 2) % 24;
             const timeStr = `${startH.toString().padStart(2,'0')}:00 - ${endH.toString().padStart(2,'0')}:00`;
@@ -237,5 +231,49 @@ window.knowledge.ziWuFlow = {
             });
         }
         return schedule;
+    }
+};
+
+// ============================================================
+// 4. ĐỒNG HỒ SINH HỌC 12 CANH GIỜ (BIO CLOCK - MỚI)
+// ============================================================
+window.knowledge.bioClock = {
+    zones: [
+        { id: 'ty', name: 'Tý', timeRange: '23:00 - 01:00', meridian: 'Đởm Kinh', advice: 'Ngủ sâu, đởm tạo máu' },
+        { id: 'suu', name: 'Sửu', timeRange: '01:00 - 03:00', meridian: 'Can Kinh', advice: 'Can thải độc, ngủ say dưỡng Can' },
+        { id: 'dan', name: 'Dần', timeRange: '03:00 - 05:00', meridian: 'Phế Kinh', advice: 'Phế khí vận chuyển sâu, nên ngủ sâu' },
+        { id: 'mao', name: 'Mão', timeRange: '05:00 - 07:00', meridian: 'Đại Trường Kinh', advice: 'Thời gian thải độc, uống nước ấm' },
+        { id: 'thin', name: 'Thìn', timeRange: '07:00 - 09:00', meridian: 'Vị Kinh', advice: 'Thời gian ăn sáng tốt nhất' },
+        { id: 'ty_ran', name: 'Tỵ', timeRange: '09:00 - 11:00', meridian: 'Tỳ Kinh', advice: 'Công việc học tập, Tỳ chủ vận hóa' },
+        { id: 'ngo', name: 'Ngọ', timeRange: '11:00 - 13:00', meridian: 'Tâm Kinh', advice: 'Ngủ trưa nhỏ, dưỡng tâm thời gian' },
+        { id: 'mui', name: 'Mùi', timeRange: '13:00 - 15:00', meridian: 'Tiểu Trường Kinh', advice: 'Tiêu hóa hấp thu, uống nhiều nước' },
+        { id: 'than', name: 'Thân', timeRange: '15:00 - 17:00', meridian: 'Bàng Quang Kinh', advice: 'Thải độc lợi thủy, uống trà nhiều' },
+        { id: 'dau', name: 'Dậu', timeRange: '17:00 - 19:00', meridian: 'Thận Kinh', advice: 'Thời gian bổ thận, thích hợp ăn tối' },
+        { id: 'tuat', name: 'Tuất', timeRange: '19:00 - 21:00', meridian: 'Tâm Bào Kinh', advice: 'Đi bộ thư giãn, chuẩn bị nghỉ ngơi' },
+        { id: 'hoi', name: 'Hợi', timeRange: '21:00 - 23:00', meridian: 'Tam Tiêu Kinh', advice: 'Thời gian vào giấc ngủ, điều lý tam tiêu' }
+    ],
+
+    // Hàm lấy ID của giờ hiện tại (để highlight trên giao diện)
+    getCurrentZoneId: function() {
+        const h = new Date().getHours();
+        if (h >= 23 || h < 1) return 'ty';
+        if (h >= 1 && h < 3) return 'suu';
+        if (h >= 3 && h < 5) return 'dan';
+        if (h >= 5 && h < 7) return 'mao';
+        if (h >= 7 && h < 9) return 'thin';
+        if (h >= 9 && h < 11) return 'ty_ran';
+        if (h >= 11 && h < 13) return 'ngo';
+        if (h >= 13 && h < 15) return 'mui';
+        if (h >= 15 && h < 17) return 'than';
+        if (h >= 17 && h < 19) return 'dau';
+        if (h >= 19 && h < 21) return 'tuat';
+        if (h >= 21 && h < 23) return 'hoi';
+        return 'ty';
+    },
+
+    // Hàm lấy thông tin chi tiết giờ hiện tại
+    getCurrentBioInfo: function() {
+        const id = this.getCurrentZoneId();
+        return this.zones.find(z => z.id === id);
     }
 };
