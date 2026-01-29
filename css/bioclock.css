@@ -1,0 +1,337 @@
+/* ==========================================================================
+   FILE: css/bioclock.css
+   PHIÊN BẢN: 2.0 (UPGRADED)
+   NỘI DUNG: Đồng hồ sinh học, 12 Con giáp, Neon Effects, Settings Panel
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. WIDGET MINI (ĐỒNG HỒ NHỎ BÊN NGOÀI)
+   -------------------------------------------------------------------------- */
+#miniBioClockWidget {
+    animation: floatWidget 6s ease-in-out infinite;
+    cursor: grab;
+    transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+}
+
+#miniBioClockWidget:active {
+    cursor: grabbing;
+    transform: scale(0.95);
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.4));
+}
+
+@keyframes floatWidget {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-6px); } 
+    100% { transform: translateY(0px); }
+}
+
+/* --------------------------------------------------------------------------
+   2. MODAL ĐỒNG HỒ (GIAO DIỆN FULL SCREEN)
+   -------------------------------------------------------------------------- */
+/* Nền Modal bao trùm: Blur nhẹ */
+.bio-modal-backdrop {
+    background: rgba(15, 10, 5, 0.85) !important; /* Nền tối hơn để nổi bật Neon */
+    backdrop-filter: blur(12px); 
+    -webkit-backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999 !important;
+    transition: opacity 0.4s ease;
+}
+
+/* Container chính căn giữa */
+.bio-modal-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    padding: 20px;
+    overflow: hidden;
+}
+
+/* Nút đóng đẹp hơn */
+.bio-close-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 28px;
+    border: 1px solid rgba(255,255,255,0.2);
+    cursor: pointer;
+    z-index: 50;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    display: flex; align-items: center; justify-content: center;
+}
+.bio-close-btn:hover {
+    background: rgba(183, 28, 28, 0.8);
+    transform: rotate(90deg);
+    border-color: rgba(255,255,255,0.6);
+}
+
+/* --------------------------------------------------------------------------
+   3. CLOCK VISUALS (HIỆU ỨNG ĐỒNG HỒ)
+   -------------------------------------------------------------------------- */
+.bio-clock-wrapper {
+    position: relative;
+    margin-bottom: 40px; 
+    filter: drop-shadow(0 20px 50px rgba(0,0,0,0.6));
+    transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.bio-clock-wrapper:hover {
+    transform: scale(1.02);
+}
+
+/* Cắt ảnh thành hình tròn hoàn hảo */
+.bio-clock-wrapper img {
+    border-radius: 50%; 
+    clip-path: circle(49.8% at 50% 50%); /* Tinh chỉnh để khử răng cưa viền */
+    -webkit-clip-path: circle(49.8% at 50% 50%);
+}
+
+/* Bảng thông tin kính mờ (Glassmorphism cao cấp) */
+.bio-info-card {
+    background: rgba(30, 20, 10, 0.6); 
+    backdrop-filter: blur(20px); 
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 236, 179, 0.15); 
+    border-radius: 24px;
+    padding: 25px 35px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+    text-align: center;
+    color: #fff;
+    animation: slideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --------------------------------------------------------------------------
+   4. DYNAMIC NEON GLOW (HIỆU ỨNG PHÁT SÁNG THEO GIỜ)
+   -------------------------------------------------------------------------- */
+.clock-zone {
+    fill: transparent; 
+    stroke: rgba(255, 255, 255, 0.03);
+    stroke-width: 1px;
+    transition: all 0.4s ease;
+    cursor: pointer;
+}
+
+.clock-zone:hover {
+    fill: rgba(255, 255, 255, 0.08); 
+    stroke: rgba(255, 255, 255, 0.4);
+}
+
+/* Class kích hoạt khi đến giờ (Active Glow) */
+.clock-zone.active-glow {
+    /* Sử dụng biến CSS từ core.css */
+    fill: var(--neon-color) !important; 
+    fill-opacity: calc(var(--neon-intensity) - 0.2); 
+    stroke: none !important;
+    
+    /* Animation nhịp thở Neon */
+    animation: neon-pulse-dynamic 2s infinite alternate ease-in-out !important;
+    
+    position: relative;
+    z-index: 100;
+}
+
+@keyframes neon-pulse-dynamic {
+    from { 
+        filter: drop-shadow(0 0 8px var(--neon-color)); 
+        fill-opacity: 0.3;
+    }
+    to { 
+        filter: drop-shadow(0 0 20px var(--neon-color)) drop-shadow(0 0 40px var(--neon-color)); 
+        fill-opacity: var(--neon-intensity);
+    }
+}
+
+/* --------------------------------------------------------------------------
+   5. CLOCK HANDS (KIM ĐỒNG HỒ)
+   -------------------------------------------------------------------------- */
+.clock-hand {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform-origin: 50% 100%; 
+    transform: translate(-50%, -100%) rotate(0deg);
+    z-index: 5;
+    pointer-events: none;
+    filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5));
+}
+/* Tinh chỉnh kích thước từng kim */
+#handHour { height: 28%; width: auto; z-index: 6; }
+#handMinute { height: 38%; width: auto; z-index: 7; }
+#handSecond { height: 42%; width: auto; z-index: 8; }
+
+.clock-center-dot {
+    position: absolute; top: 50%; left: 50%; width: 16px; height: 16px;
+    background: radial-gradient(circle at 30% 30%, #5d4037, #2d1e1a);
+    border: 2px solid #fff; border-radius: 50%;
+    transform: translate(-50%, -50%); z-index: 10;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.6);
+}
+
+/* --------------------------------------------------------------------------
+   6. 12 ZODIAC ANIMALS (VIDEO/GIF LAYERS)
+   -------------------------------------------------------------------------- */
+.char-video-wrapper {
+    position: absolute;
+    width: 80px; height: 80px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    opacity: 0;
+    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); /* Hiệu ứng nảy khi hiện */
+    pointer-events: none;
+}
+
+.char-video-wrapper img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+}
+
+/* Khi active: Hiện lên và phóng to */
+.char-video-wrapper.video-active {
+    opacity: 1;
+    transform: scale(1.4) translate(-35%, -35%); /* Căn chỉnh lại tâm khi scale */
+    z-index: 20;
+    filter: drop-shadow(0 0 15px var(--neon-color));
+}
+
+/* Vị trí tuyệt đối cho 12 con giáp */
+.char-ty { top: 12%; left: 50%; transform: translate(-50%, -50%); }
+.char-suu { top: 15%; left: 69%; transform: translate(-50%, -50%); }
+.char-dan { top: 31%; left: 83%; transform: translate(-50%, -50%); }
+.char-mao { top: 50%; left: 88%; transform: translate(-50%, -50%); }
+.char-thin { top: 69%; left: 83%; transform: translate(-50%, -50%); }
+.char-ty_ran { top: 85%; left: 69%; transform: translate(-50%, -50%); }
+.char-ngo { top: 88%; left: 50%; transform: translate(-50%, -50%); }
+.char-mui { top: 85%; left: 31%; transform: translate(-50%, -50%); }
+.char-than { top: 69%; left: 17%; transform: translate(-50%, -50%); }
+.char-dau { top: 50%; left: 12%; transform: translate(-50%, -50%); }
+.char-tuat { top: 31%; left: 17%; transform: translate(-50%, -50%); }
+.char-hoi { top: 15%; left: 31%; transform: translate(-50%, -50%); }
+
+/* --------------------------------------------------------------------------
+   7. SETTINGS PANEL UI (BẢNG CÀI ĐẶT)
+   -------------------------------------------------------------------------- */
+#clockSettingsPanel {
+    max-height: 60vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.3) transparent;
+}
+#clockSettingsPanel::-webkit-scrollbar { width: 4px; }
+#clockSettingsPanel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 4px; }
+
+/* Nút upload file */
+.custom-file-upload {
+    display: inline-block; padding: 6px 12px; cursor: pointer;
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px; font-size: 11px; color: #eee; text-align: center;
+    width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    transition: all 0.2s;
+}
+.custom-file-upload:hover { 
+    background: rgba(255,255,255,0.25); color: #fff; 
+    border-color: rgba(255,255,255,0.5);
+}
+
+/* Color Picker Style */
+input[type="color"] {
+    -webkit-appearance: none; border: none; 
+    width: 100%; height: 30px; 
+    cursor: pointer; padding: 0; background: none;
+}
+input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+input[type="color"]::-webkit-color-swatch { 
+    border: 1px solid rgba(255,255,255,0.5); border-radius: 6px; 
+}
+
+/* Range Slider Style */
+input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; cursor: pointer; margin: 10px 0; }
+input[type=range]::-webkit-slider-runnable-track { 
+    width: 100%; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; 
+}
+input[type=range]::-webkit-slider-thumb { 
+    -webkit-appearance: none; height: 16px; width: 16px; 
+    border-radius: 50%; background: #fff; margin-top: -6px; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5); 
+    transition: transform 0.1s;
+}
+input[type=range]:active::-webkit-slider-thumb { transform: scale(1.2); }
+
+/* --- BẢN ĐỒ HUYỆT VỊ TƯƠNG TÁC (VISUAL MAP STYLES) --- */
+/* (Đặt tại đây vì nó thuộc phần hiển thị nâng cao) */
+
+.map-point {
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Hiệu ứng nảy */
+    cursor: pointer;
+    stroke: rgba(255,255,255,0.9);
+    stroke-width: 1.5px;
+    /* Tăng vùng chạm ảo cho ngón tay */
+    pointer-events: all;
+}
+.map-point:hover {
+    r: 8; 
+    fill: #e65100;
+    stroke-width: 2px;
+}
+
+/* Huyệt ĐANG CHỌN */
+.map-point.active {
+    fill: #3e2723 !important;
+    stroke: #fff !important;
+    stroke-width: 2.5px;
+    r: 7;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+}
+
+/* Huyệt ĐƯỢC AI GỢI Ý (Hiệu ứng Neon Pulse) */
+.map-point.suggested {
+    animation: point-pulse 2s infinite;
+    fill: #ffd700 !important;
+    stroke: #ff6f00 !important;
+}
+
+@keyframes point-pulse {
+    0% { r: 4; opacity: 1; filter: drop-shadow(0 0 0px #ffd700); }
+    50% { r: 8; opacity: 0.8; filter: drop-shadow(0 0 10px #ffd700); }
+    100% { r: 4; opacity: 1; filter: drop-shadow(0 0 0px #ffd700); }
+}
+
+/* Tooltip trên bản đồ */
+#mapTooltip {
+    position: absolute;
+    transform: translate(-50%, -140%); /* Đẩy lên trên ngón tay */
+    pointer-events: none;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(4px);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 100;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+/* Mũi tên tooltip */
+#mapTooltip::after {
+    content: ''; position: absolute; top: 100%; left: 50%; margin-left: -5px;
+    border-width: 5px; border-style: solid;
+    border-color: rgba(0,0,0,0.85) transparent transparent transparent;
+}
