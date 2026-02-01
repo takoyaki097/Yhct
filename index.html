@@ -7,7 +7,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="YHCT Pro">
-    <meta name="theme-color" content="#5d4037"> <meta name="format-detection" content="telephone=no">
+    <meta name="theme-color" content="#5d4037"> 
+    <meta name="format-detection" content="telephone=no">
     
     <link rel="apple-touch-icon" href="icon.png">
     
@@ -26,8 +27,9 @@
     <link rel="stylesheet" href="css/bioclock.css">
 
     <style>
+        /* CSS nội bộ cho màn hình Loading */
         #globalLoader { position: fixed; inset: 0; z-index: 99999; background: #f2ebe0; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease; }
-        .loader-spinner { width: 50px; height: 50px; border: 4px solid #d7ccc8; border-top: 4px solid #5d4037; border-radius: 50%; animation: spin 1s linear infinite; mb-4; }
+        .loader-spinner { width: 50px; height: 50px; border: 4px solid #d7ccc8; border-top: 4px solid #5d4037; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
@@ -35,7 +37,7 @@
 
     <div id="globalLoader">
         <div class="loader-spinner"></div>
-        <p style="margin-top: 15px; font-weight: bold; color: #5d4037; font-family: 'Noto Serif', serif;">Đang tải dữ liệu YHCT...</p>
+        <p style="font-weight: bold; color: #5d4037; font-family: 'Noto Serif', serif;">Đang tải dữ liệu YHCT...</p>
     </div>
 
     <div class="max-w-3xl mx-auto relative opacity-0 transition-opacity duration-500" id="mainAppContent">
@@ -99,53 +101,64 @@
         </div>
     </div>
 
-    <script src="js/modules/ui-helper.js"></script>
+    <script src="configs/config-core.js"></script>
+    <script src="configs/config-header.js"></script>
+    <script src="configs/config-settings-ui.js"></script>
+    <script src="configs/config-disease.js"></script>
+    <script src="configs/config-procedures.js"></script>
+    <script src="configs/config-medicine.js"></script>
     
-    <script src="js/configs/config-core.js"></script>
-    <script src="js/configs/config-header.js"></script>
-    <script src="js/configs/config-settings-ui.js"></script>
-    <script src="js/configs/config-disease.js"></script>
-    <script src="js/configs/config-procedures.js"></script>
-    <script src="js/configs/config-medicine.js"></script>
+    <script src="knowledge/knowledge.js"></script>
+    <script src="knowledge/database.js"></script>
+    <script src="knowledge/acu-meridians-1.js"></script>
+    <script src="knowledge/acu-meridians-2.js"></script>
+    <script src="knowledge/acu-extra-vessels.js"></script>
+    <script src="knowledge/acu-extra-points.js"></script>
+    <script src="knowledge/herbs-data.js"></script> 
+    <script src="knowledge/knowledge-time.js"></script>
+    <script src="knowledge/knowledge-ziwu.js"></script>
+    <script src="knowledge/knowledge-ai.js"></script>
+
+    <script src="templates/tpl-visit.js"></script>     
+    <script src="templates/tpl-patient.js"></script>   
+    <script src="templates/tpl-modal-report.js"></script> 
+    <script src="templates/tpl-modal-lookup.js"></script> 
+    <script src="templates/tpl-modal-clock.js"></script>  
+    <script src="templates/tpl-modal-herb.js"></script> 
+    <script src="templates/tpl-inventory.js"></script>
     
-    <script src="js/knowledge/knowledge.js"></script>
-    <script src="js/knowledge/knowledge-acupoints.js"></script>
-    <script src="js/knowledge/knowledge-herbs.js"></script> 
-    <script src="js/knowledge/knowledge-time.js"></script>
-    <script src="js/knowledge/knowledge-ai.js"></script>
-    <script src="js/knowledge/database.js"></script>   
+    <script src="templates/tpl-modal-sample.js"></script>
 
-    <script src="js/templates/tpl-visit.js"></script>     
-    <script src="js/templates/tpl-patient.js"></script>   
-    <script src="js/templates/tpl-settings.js"></script>
-    <script src="js/templates/tpl-modal-report.js"></script> 
-    <script src="js/templates/tpl-modal-lookup.js"></script> 
-    <script src="js/templates/tpl-modal-clock.js"></script>  
-    <script src="js/templates/tpl-modal-herb.js"></script> 
-    <script src="js/templates/tpl-inventory.js"></script>
-    <script src="js/templates/template-loader.js"></script>
+    <script src="tpl-settings/tab-ui.js"></script>
+    <script src="tpl-settings/tab-med.js"></script>
+    <script src="tpl-settings/tab-system.js"></script>
+    <script src="tpl-settings/sub-modals.js"></script>
+    <script src="tpl-settings/index.js"></script>
 
-    <script src="js/modules/inventory.js"></script>
-    <script src="js/modules/patient.js"></script>
-    <script src="js/modules/report.js"></script>
+    <script src="templates/template-loader.js"></script>
+
+    <script src="modules_core/ui-helper.js"></script>
+    <script src="modules_core/inventory.js"></script>
+    <script src="modules_core/patient.js"></script>
+    <script src="modules_core/report.js"></script>
     
-    <script src="js/modules/visit-core.js"></script>
-    <script src="js/modules/visit-map.js"></script>
-    <script src="js/modules/visit-meds.js"></script>
-    <script src="js/modules/visit-procs.js"></script>
-    <script src="js/modules/visit-finish.js"></script>
+    <script src="modules_visit/visit-core.js"></script>
+    <script src="modules_visit/visit-map.js"></script>
+    <script src="modules_visit/visit-meds.js"></script>
+    <script src="modules_visit/visit-procs.js"></script>
+    <script src="modules_visit/visit-finish.js"></script>
 
-    <script src="js/modules/main.js"></script>
+    <script src="modules_core/main.js"></script>
 
     <script>
-        // A. Khởi tạo Template
+        // A. Khởi tạo Template (Nạp HTML vào trang)
         if(window.loadAllModals) {
             window.loadAllModals();
         } else {
-            console.error("Lỗi: Không tìm thấy template-loader.js!");
+            console.error("Lỗi: Không tìm thấy template-loader.js! Kiểm tra lại thư mục 'templates'.");
         }
 
-        // B. Xử lý Loader
+        // B. Xử lý Loader (Tắt màn hình chờ)
         window.addEventListener('load', function() {
             setTimeout(() => {
                 const loader = document.getElementById('globalLoader');
@@ -159,7 +172,7 @@
                 }
             }, 800); 
             
-            // [NEW] Khởi tạo Kho (Inventory) khi App load
+            // Khởi tạo Kho (Inventory) nếu chưa chạy
             if(window.Inventory && window.Inventory.init) {
                 window.Inventory.init();
             }
@@ -189,11 +202,12 @@
                             const oldBg = window.config ? window.config.headerBgImage : null;
                             const oldQr = window.config ? window.config.qrCodeImage : null;
                             window.config = { ...window.defaultConfig, ...jsonContent.config };
+                            // Giữ lại ảnh cũ nếu file backup không có
                             if (!window.config.headerBgImage && oldBg) window.config.headerBgImage = oldBg;
                             if (!window.config.qrCodeImage && oldQr) window.config.qrCodeImage = oldQr;
                             await localforage.setItem('yhct_cfg_v49', window.config);
                         }
-                        // [NEW] Khôi phục Kho
+                        // Khôi phục Kho
                         if (jsonContent.inventory) {
                             await localforage.setItem('yhct_inventory', jsonContent.inventory);
                             if(window.Inventory && window.Inventory.init) await window.Inventory.init();
