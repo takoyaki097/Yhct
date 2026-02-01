@@ -1,7 +1,8 @@
 /* ==========================================================================
    FILE: css/core.css
-   PHIÊN BẢN: 2.0 (UPGRADED)
+   PHIÊN BẢN: 2.2 (ALIGNMENT PERFECT)
    NỘI DUNG: Variables, Reset, Typography, Global Utilities, Header Styles
+   CẬP NHẬT: Fix lỗi lệch dòng Header, căn thẳng hàng dấu hai chấm (:).
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
@@ -162,15 +163,58 @@ body {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
+/* --- [FIX CHÍNH] CĂN CHỈNH HEADER INFO BOX THẲNG HÀNG --- */
 .header-info-box {
-    background-color: rgba(62, 39, 35, 0.05); /* Mặc định nhẹ nhàng hơn */
+    background-color: rgba(62, 39, 35, 0.05);
     border: 1px solid rgba(62, 39, 35, 0.1);
     backdrop-filter: blur(12px) !important;
     -webkit-backdrop-filter: blur(12px) !important;
     box-shadow: inset 0 1px 15px rgba(255,255,255,0.1);
     border-radius: 12px;
     transition: all 0.3s ease;
+    /* Reset padding mặc định của Tailwind nếu có */
+    padding: 8px 12px; 
 }
+
+/* 1. Cấu trúc từng dòng: Ép dùng Flexbox chuẩn */
+.header-info-box > div {
+    display: flex !important;
+    justify-content: flex-start !important; /* Không dùng space-between */
+    align-items: baseline !important; /* Căn theo chân chữ cho đẹp */
+    gap: 10px !important; /* Khoảng cách cố định giữa Nhãn và Nội dung */
+    margin-bottom: 4px; /* Giãn dòng */
+}
+
+/* 2. Cột NHÃN (Dương:, Âm:, Vận:, Giờ:) */
+/* Target span đầu tiên của mỗi dòng */
+.header-info-box > div > span:first-child {
+    width: 45px !important; /* [QUAN TRỌNG] Độ rộng cố định */
+    min-width: 45px !important;
+    text-align: right !important; /* Căn phải để dấu : thẳng hàng */
+    flex-shrink: 0 !important; /* Không cho phép co lại */
+    opacity: 0.7;
+    font-weight: 700;
+    margin-right: 0 !important; /* Reset margin cũ */
+}
+
+/* 3. Cột NỘI DUNG (Phía sau dấu :) */
+.header-info-box > div > span:last-child,
+.header-info-box > div > div { /* Support cho trường hợp thẻ div con */
+    text-align: left !important;
+    flex: 1; /* Chiếm hết khoảng trống còn lại */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 700;
+}
+
+/* Fix riêng cho Marquee để không bị lệch trục */
+.header-info-box marquee {
+    vertical-align: middle !important;
+    line-height: 1.4;
+    margin-bottom: -1px;
+}
+/* ---------------------------------------------------------- */
 
 #displayTitle {
     white-space: nowrap !important; 

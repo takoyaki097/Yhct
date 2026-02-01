@@ -241,3 +241,74 @@ input[type=range].song-slider::-webkit-slider-thumb:active { transform: scale(1.
         background: transparent !important;
     }
 }
+/* ==========================================================================
+   NEW: TIME FILTER UI (THANH TRƯỢT THỜI GIAN)
+   Style: Horizontal Scroll + Pill Shape
+   ========================================================================== */
+
+#monthFilterArea {
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 30;
+}
+
+/* Container thanh trượt */
+.filter-scroll-track {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 4px 5px 12px 5px; /* Padding bottom để chứa shadow */
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    /* Ẩn thanh cuộn nhưng vẫn vuốt được */
+    scrollbar-width: none; 
+    -ms-overflow-style: none;
+}
+.filter-scroll-track::-webkit-scrollbar { display: none; }
+
+/* Mask mờ 2 bên để chỉ dẫn người dùng vuốt */
+#monthFilterArea::after {
+    content: '';
+    position: absolute; top: 0; right: 0; bottom: 10px; width: 40px;
+    background: linear-gradient(to right, transparent, var(--song-bg));
+    pointer-events: none;
+}
+
+/* Style cho từng nút (Viên thuốc) */
+.month-pill {
+    flex-shrink: 0;
+    appearance: none; -webkit-appearance: none;
+    border: 1px solid #d7ccc8;
+    background: #fff;
+    color: #8d6e63;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 2px 5px rgba(141, 110, 99, 0.1);
+    display: flex; align-items: center; gap: 6px;
+}
+
+/* Trạng thái Hover */
+.month-pill:hover {
+    background: #fff8e1;
+    border-color: #8d6e63;
+    transform: translateY(-1px);
+}
+
+/* Trạng thái Active (Đang chọn) */
+.month-pill.active {
+    background: #5d4037; /* Màu gỗ đậm */
+    color: #fff;
+    border-color: #5d4037;
+    box-shadow: 0 4px 12px rgba(93, 64, 55, 0.4);
+    transform: scale(1.05);
+}
+
+/* Icon nhỏ bên trong nút */
+.month-pill span.icon {
+    font-size: 14px;
+    opacity: 0.8;
+}
