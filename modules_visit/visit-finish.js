@@ -207,6 +207,7 @@ window.processSave = async function(print) {
         
         // Xử lý sau khi lưu
         if(print) { 
+            // [CẬP NHẬT] Gọi lệnh in HOÁ ĐƠN mặc định
             if(window.preparePrint) window.preparePrint('invoice'); 
         } else { 
             if(window.showToast) window.showToast("✅ Đã lưu & Trừ kho thành công!", "success"); 
