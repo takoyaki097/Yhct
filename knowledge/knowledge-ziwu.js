@@ -2,6 +2,7 @@
  * FILE: knowledge/knowledge-ziwu.js
  * CHỨC NĂNG: Bộ máy tính toán Tí Ngọ Lưu Chú (Zi Wu Liu Zhu Engine).
  * NHIỆM VỤ: Tính toán huyệt Khai, huyệt Bổ/Tả theo giờ và Thiên Can/Địa Chi.
+ * CẬP NHẬT: Fix lỗi 'undefined branches' do sai nguồn dữ liệu Can/Chi.
  */
 
 window.knowledge = window.knowledge || {};
@@ -93,8 +94,8 @@ window.knowledge.ziWuFlow = {
 
     // 1. TÍNH CAN GIỜ (Theo Ngũ Hổ Độn: Giáp Kỷ khởi Giáp Tý...)
     getHourStem: function(dayStemIdx, hourBranchIdx) {
-        // dayStemIdx: 0=Giáp, 1=Ất...
-        const stems = window.knowledge.lunar.can; 
+        // [FIX] Lấy dữ liệu CAN từ timeEngine thay vì lunar
+        const stems = window.knowledge.timeEngine.CAN; 
         const startStemIdx = (dayStemIdx % 5) * 2;
         const currentStemIdx = (startStemIdx + hourBranchIdx) % 10;
         return stems[currentStemIdx];
@@ -141,11 +142,22 @@ window.knowledge.ziWuFlow = {
         const hour = now.getHours();
         
         // Lấy thông tin ngày từ knowledge-time.js
+        // Đảm bảo module timeEngine đã load
+        if (!window.knowledge.lunar || !window.knowledge.timeEngine) return null;
+
         const lunarInfo = window.knowledge.lunar.getLunarDetails();
         
         // Tính Chi giờ (23-1h = Tý)
         let branchIdx = Math.floor((hour + 1) / 2) % 12;
-        const branches = window.knowledge.lunar.chi;
+        
+        // [FIX] Lấy mảng CHI từ timeEngine thay vì lunar
+        const branches = window.knowledge.timeEngine.CHI;
+        
+        if (!branches) {
+            console.error("Lỗi: Không tìm thấy dữ liệu CHI trong timeEngine.");
+            return null;
+        }
+
         const currentBranch = branches[branchIdx]; 
         
         // Tính Can giờ
@@ -168,6 +180,9 @@ window.knowledge.ziWuFlow = {
     // để file configs/config-header.js gọi không bị lỗi
     getCurrentFlow: function() {
         const analysis = this.getCurrentAnalysis();
+        
+        if (!analysis) return { msg: "Đang tải...", openPoint: "", meridian: "" };
+
         const naZi = analysis.naZi;
         
         return {
