@@ -1,11 +1,14 @@
 /**
  * FILE: modules_core/patient.js
  * CHỨC NĂNG: Quản lý bệnh nhân (CRUD, Search, Filter, History).
- * CẬP NHẬT: Giao diện bộ lọc tháng dạng thanh trượt ngang & Trigger cập nhật Header.
+ * CẬP NHẬT: 
+ * - [MỚI] Chức năng Sắp xếp (Sort): Mới nhất / Tên A-Z.
+ * - [MỚI] Hiển thị chấm đỏ (🔴) báo hiệu khách có công nợ chưa thanh toán.
  */
 
 window.searchTimeout = null;
 window.currentMonthFilter = 'CURRENT';
+window.currentSortMode = 'RECENT'; // Mặc định sắp xếp theo lần khám gần nhất
 
 // --- 1. BỘ LỌC THÁNG (MONTH FILTER - NEW UI) ---
 
@@ -83,6 +86,12 @@ window.setMonthFilter = function(filter) {
     window.render(); 
 };
 
+// [MỚI] Hàm xử lý thay đổi chế độ sắp xếp
+window.setSortMode = function(mode) {
+    window.currentSortMode = mode;
+    window.render();
+};
+
 // --- 2. HIỂN THỊ DANH SÁCH BỆNH NHÂN (RENDER LIST) ---
 
 window.debouncedRender = function() { 
@@ -98,55 +107,87 @@ window.render = function() {
         window.currentMonthFilter = window.getLocalDate().slice(0, 7);
     }
 
-    const list = document.getElementById('list');
+    const listContainer = document.getElementById('list');
     const searchInput = document.getElementById('search');
     const kw = searchInput ? searchInput.value.toLowerCase() : '';
     
-    list.innerHTML = window.db.map(p => {
-        // Logic tìm kiếm
+    // A. LỌC DỮ LIỆU (FILTER)
+    let filteredList = window.db.filter(p => {
+        // 1. Logic tìm kiếm
         const matchesKeyword = p.name.toLowerCase().includes(kw) || (p.phone && p.phone.includes(kw));
+        if (!matchesKeyword) return false;
+
+        // 2. Logic lọc tháng
+        if (window.currentMonthFilter === 'ALL') return true;
+        if (kw.length > 0) return true; // Nếu đang tìm kiếm thì bỏ qua lọc tháng
         
-        if (!matchesKeyword) return '';
+        // Kiểm tra có lần khám nào trong tháng chọn không
+        if (p.visits && p.visits.some(v => v.date && v.date.startsWith(window.currentMonthFilter))) {
+            return true;
+        }
+        return false;
+    });
 
-        // Logic lọc tháng
-        let showPatient = false;
-        if (window.currentMonthFilter === 'ALL') {
-            showPatient = true; 
+    // B. SẮP XẾP DỮ LIỆU (SORT)
+    filteredList.sort((a, b) => {
+        if (window.currentSortMode === 'NAME') {
+            return a.name.localeCompare(b.name);
         } else {
-            // Nếu bệnh nhân có ít nhất 1 lần khám trong tháng đang chọn
-            if (p.visits && p.visits.some(v => v.date && v.date.startsWith(window.currentMonthFilter))) {
-                showPatient = true;
-            }
-            // Nếu đang tìm kiếm (có gõ chữ), hiển thị kết quả bất kể tháng (UX tốt hơn)
-            if (kw.length > 0) showPatient = true; 
+            // RECENT: Lấy ngày khám mới nhất của mỗi người để so sánh
+            const dateA = (a.visits && a.visits.length > 0) ? a.visits[0].date : '0000-00-00';
+            const dateB = (b.visits && b.visits.length > 0) ? b.visits[0].date : '0000-00-00';
+            // Mới nhất lên đầu (Giảm dần)
+            return dateB.localeCompare(dateA);
         }
+    });
 
-        if(showPatient) {
-            return `
-            <div class="patient-row">
-                <div class="p-info" onclick="window.viewHistory('${p.id}')">
-                    <h3 class="font-bold text-lg text-[#3e2723]">${p.name}</h3>
-                    <p class="text-xs text-[#8d6e63]">
-                        ${p.year ? 'SN ' + p.year : ''} ${p.phone ? '• ' + p.phone : ''}
-                    </p>
-                </div>
-                <div class="p-actions">
-                    <button onclick="window.handleEdit('${p.id}',event)" class="act-btn act-edit">SỬA</button>
-                    <button onclick="window.handleExam('${p.id}',event)" class="act-btn act-exam">KHÁM</button>
-                    <button onclick="window.handleDelete('${p.id}')" class="act-btn act-del">XÓA</button>
-                </div>
-            </div>`;
-        }
-        return '';
+    // C. RENDER HTML
+    let htmlContent = `
+        <div class="flex justify-between items-center px-2 mb-3">
+            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                ${filteredList.length} Bệnh nhân
+            </span>
+            <select onchange="window.setSortMode(this.value)" class="text-xs bg-transparent border-none font-bold text-[#5d4037] outline-none cursor-pointer">
+                <option value="RECENT" ${window.currentSortMode==='RECENT'?'selected':''}>🕒 Mới khám trước</option>
+                <option value="NAME" ${window.currentSortMode==='NAME'?'selected':''}>🅰️ Tên A-Z</option>
+            </select>
+        </div>
+    `;
+
+    const itemsHtml = filteredList.map(p => {
+        // [MỚI] Kiểm tra nợ: Nếu có bất kỳ phiếu nào chưa trả (paid == false)
+        const hasDebt = p.visits && p.visits.some(v => !v.paid);
+        const debtBadge = hasDebt ? `<span class="w-2.5 h-2.5 bg-red-500 rounded-full inline-block ml-2 border border-white shadow-sm align-middle" title="Có khoản chưa thanh toán"></span>` : '';
+
+        return `
+        <div class="patient-row">
+            <div class="p-info" onclick="window.viewHistory('${p.id}')">
+                <h3 class="font-bold text-lg text-[#3e2723] flex items-center">
+                    ${p.name} ${debtBadge}
+                </h3>
+                <p class="text-xs text-[#8d6e63]">
+                    ${p.year ? 'SN ' + p.year : ''} ${p.phone ? '• ' + p.phone : ''}
+                </p>
+            </div>
+            <div class="p-actions">
+                <button onclick="window.handleEdit('${p.id}',event)" class="act-btn act-edit">SỬA</button>
+                <button onclick="window.handleExam('${p.id}',event)" class="act-btn act-exam">KHÁM</button>
+                <button onclick="window.handleDelete('${p.id}')" class="act-btn act-del">XÓA</button>
+            </div>
+        </div>`;
     }).join('');
     
+    htmlContent += itemsHtml;
+
     // Empty State (Trạng thái trống)
-    if(list.innerHTML.trim() === '') {
-        if(kw) list.innerHTML = `<div class="text-center text-gray-400 mt-10 italic flex flex-col items-center"><span class="text-3xl mb-2">🔍</span>Không tìm thấy bệnh nhân nào khớp với "${kw}".</div>`;
-        else list.innerHTML = `<div class="text-center text-gray-400 mt-10 italic flex flex-col items-center"><span class="text-3xl mb-2">📭</span>Không có bệnh nhân nào khám trong tháng này.<br>Chọn "Tất cả" hoặc thêm mới.</div>`;
+    if(filteredList.length === 0) {
+        if(kw) htmlContent = `<div class="text-center text-gray-400 mt-10 italic flex flex-col items-center"><span class="text-3xl mb-2">🔍</span>Không tìm thấy bệnh nhân nào khớp với "${kw}".</div>`;
+        else htmlContent = `<div class="text-center text-gray-400 mt-10 italic flex flex-col items-center"><span class="text-3xl mb-2">📭</span>Không có bệnh nhân nào khám trong tháng này.<br>Chọn "Tất cả" hoặc thêm mới.</div>`;
     }
 
-    // Cập nhật nhãn tháng trên Header (Ô vuông bên phải header)
+    listContainer.innerHTML = htmlContent;
+
+    // Cập nhật nhãn tháng trên Header
     const monthLabel = document.getElementById('monthLabel');
     if(monthLabel) {
         if(window.currentMonthFilter === 'ALL') {
@@ -157,7 +198,7 @@ window.render = function() {
         }
     }
     
-    // [QUAN TRỌNG] Trigger cập nhật số tiền trên Header ngay khi render xong
+    // Trigger cập nhật số tiền trên Header ngay khi render xong
     if(window.updateProfitDisplay) window.updateProfitDisplay();
 };
 
