@@ -1,9 +1,9 @@
 /**
  * FILE: templates/tpl-inventory.js
- * CHỨC NĂNG: Giao diện Quản lý kho (Responsive Ultimate).
+ * CHỨC NĂNG: Giao diện Quản lý kho.
  * CẬP NHẬT: 
- * - Nâng ngưỡng Breakpoint lên XL (1280px). 
- * - iPad ngang (1024px) vẫn hiện nút Menu ☰ thay vì ghim cứng cột trái.
+ * - Fix lỗi mất Sidebar trên iPad: Chuyển sang cơ chế Transform (Trượt) thay vì Display (Ẩn/Hiện).
+ * - Hiển thị nút Menu (3 sọc) lên đến màn hình LG (1024px) để dự phòng.
  */
 
 window.InventoryTpl = {
@@ -17,11 +17,11 @@ window.InventoryTpl = {
         const html = `
             <div id="inventoryModalContent" class="flex flex-col h-full bg-[#fdfbf7]">
                 
-                <div class="p-3 bg-white border-b border-[#d7ccc8] flex gap-3 items-center shadow-sm z-20 shrink-0">
+                <div class="p-3 bg-white border-b border-[#d7ccc8] flex gap-3 items-center shadow-sm z-20 shrink-0 relative">
                     
-                    <button class="xl:hidden w-10 h-10 flex items-center justify-center border border-[#d7ccc8] rounded-lg text-[#5d4037] active:bg-[#efebe9] transition-colors" 
-                            onclick="document.getElementById('invSidebar').classList.toggle('hidden'); document.getElementById('invSidebarOverlay').classList.toggle('hidden');">
-                        ☰
+                    <button class="lg:hidden w-10 h-10 flex-shrink-0 flex items-center justify-center border border-[#d7ccc8] rounded-lg text-[#5d4037] active:bg-[#efebe9] transition-colors" 
+                            onclick="window.InventoryTpl.toggleSidebar()">
+                        <span class="text-xl font-bold">☰</span>
                     </button>
 
                     <div class="relative flex-1 group">
@@ -32,36 +32,37 @@ window.InventoryTpl = {
                     </div>
 
                     <button onclick="InventoryTpl.openItemModal()" 
-                        class="bg-[#5d4037] text-white h-10 px-4 rounded-xl text-sm font-bold shadow-sm hover:bg-[#4e342e] flex items-center gap-2 active:scale-95 transition-transform whitespace-nowrap">
+                        class="bg-[#5d4037] text-white h-10 px-4 rounded-xl text-sm font-bold shadow-sm hover:bg-[#4e342e] flex items-center gap-2 active:scale-95 transition-transform whitespace-nowrap flex-shrink-0">
                         <span class="text-lg">+</span> <span class="hidden sm:inline">Thêm</span>
                     </button>
                 </div>
 
                 <div class="flex-1 flex overflow-hidden relative">
                     
-                    <div id="invSidebar" class="hidden xl:block w-64 bg-white border-r border-[#d7ccc8] overflow-y-auto custom-scrollbar flex-shrink-0 absolute xl:static inset-y-0 left-0 z-30 shadow-2xl xl:shadow-none transition-all h-full">
-                        <div class="p-2 space-y-1">
-                            <div class="px-3 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-2 flex justify-between items-center">
-                                <span>Danh mục</span>
-                                <button class="xl:hidden text-lg text-gray-400 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100" 
-                                        onclick="document.getElementById('invSidebar').classList.add('hidden'); document.getElementById('invSidebarOverlay').classList.add('hidden');">&times;</button>
-                            </div>
+                    <div id="invSidebar" class="absolute inset-y-0 left-0 z-30 w-64 bg-white border-r border-[#d7ccc8] transform -translate-x-full transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 flex flex-col shadow-2xl lg:shadow-none">
+                        
+                        <div class="flex justify-between items-center p-3 border-b border-gray-100 lg:hidden bg-[#fdfbf7]">
+                            <span class="font-bold text-[#5d4037] text-xs uppercase">Danh mục</span>
+                            <button onclick="window.InventoryTpl.toggleSidebar()" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 text-gray-500 font-bold">&times;</button>
+                        </div>
+
+                        <div class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
                             ${this.renderSidebarBtn('all', '📦 Tất cả')}
                             ${this.renderSidebarBtn('dong_duoc', '🌿 Đông dược')}
                             ${this.renderSidebarBtn('tan_duoc', '💊 Tân dược')}
                             ${this.renderSidebarBtn('vtyt', '💉 Vật tư y tế')}
                         </div>
 
-                        <div class="mt-4 mx-2 p-3 bg-[#fefebe0] rounded-xl border border-[#d7ccc8] text-center mb-4">
-                            <div class="text-[9px] text-gray-500 uppercase font-bold mb-1">Tổng giá trị kho</div>
-                            <div class="font-mono font-black text-[#3e2723] text-base" id="invTotalValue">
+                        <div class="p-3 mt-auto border-t border-gray-100 bg-gray-50">
+                            <div class="text-[9px] text-gray-500 uppercase font-bold mb-1 text-center">Tổng giá trị kho</div>
+                            <div class="font-mono font-black text-[#3e2723] text-base text-center" id="invTotalValue">
                                 ${this.formatMoney(this.calculateTotalValue())}
                             </div>
                         </div>
                     </div>
 
-                    <div id="invSidebarOverlay" class="hidden xl:hidden absolute inset-0 bg-black/30 z-20 backdrop-blur-sm transition-opacity"
-                         onclick="document.getElementById('invSidebar').classList.add('hidden'); this.classList.add('hidden');">
+                    <div id="invSidebarOverlay" class="absolute inset-0 bg-black/50 z-20 backdrop-blur-sm transition-opacity opacity-0 pointer-events-none lg:hidden"
+                         onclick="window.InventoryTpl.toggleSidebar()">
                     </div>
 
                     <div class="flex-1 flex flex-col bg-[#f8f6f4] relative w-full min-w-0">
@@ -108,6 +109,26 @@ window.InventoryTpl = {
         this.renderList();
     },
 
+    // [MỚI] Hàm xử lý bật tắt Sidebar (dùng class translate)
+    toggleSidebar: function() {
+        const sb = document.getElementById('invSidebar');
+        const ov = document.getElementById('invSidebarOverlay');
+        if (!sb || !ov) return;
+
+        // Kiểm tra xem đang đóng hay mở
+        const isClosed = sb.classList.contains('-translate-x-full');
+
+        if (isClosed) {
+            // Mở ra
+            sb.classList.remove('-translate-x-full');
+            ov.classList.remove('opacity-0', 'pointer-events-none');
+        } else {
+            // Đóng lại
+            sb.classList.add('-translate-x-full');
+            ov.classList.add('opacity-0', 'pointer-events-none');
+        }
+    },
+
     // Render nút Sidebar
     renderSidebarBtn: function(type, label) {
         const isActive = this.currentFilter === type;
@@ -146,14 +167,10 @@ window.InventoryTpl = {
             }
         });
 
-        // Tự động đóng sidebar sau khi chọn (Chỉ trên Mobile/iPad)
-        const sb = document.getElementById('invSidebar');
-        const ov = document.getElementById('invSidebarOverlay');
-        
-        // Kiểm tra nếu sidebar đang ở chế độ absolute (Mobile/iPad) thì mới đóng
-        if(sb && window.getComputedStyle(sb).position === 'absolute') {
-            sb.classList.add('hidden');
-            if(ov) ov.classList.add('hidden');
+        // Tự động đóng sidebar sau khi chọn (Chỉ trên Mobile/Tablet)
+        // Check nếu màn hình nhỏ (LG)
+        if (window.innerWidth < 1024) {
+            this.toggleSidebar();
         }
 
         this.renderList();
