@@ -2,8 +2,8 @@
  * FILE: modules_core/ui-helper.js
  * CHỨC NĂNG: Tiện ích UI (NumberPad, Password, Print A4, Toast, Draggable).
  * CẬP NHẬT: 
- * - Hoá đơn: Tính toán trực tiếp tiền Đông/Tây y (không lấy từ UI) để đảm bảo chính xác.
- * - Hoá đơn: Hiển thị chi tiết thủ thuật, nhưng gộp nhóm tiền thuốc.
+ * - Hoá đơn: In A4, Logic hiển thị giá tiền thông minh (Đông/Tây y).
+ * - Hoá đơn tổng hợp: Gộp dòng thuốc, chi tiết thủ thuật, QR Code.
  */
 
 // --- 1. BIẾN TOÀN CỤC ---
@@ -131,289 +131,297 @@ window.submitNativePassword = function() {
     document.getElementById('nativePassModal').classList.remove('active');
 };
 
-// --- 5. HỆ THỐNG IN ẤN CHUẨN A4 ---
+// --- 5. HỆ THỐNG IN ẤN CHUẨN A4 (ĐÃ UPDATE THEO YÊU CẦU MỚI) ---
 
-window.generatePrintHeader = function(clinicTitle, doctorName, date, patient, disease, symptoms) {
-    return `
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; font-family: 'Times New Roman', serif; color: #000;">
-        <div style="text-align: left;">
-            <h1 style="margin: 0; font-size: 16pt; font-weight: bold; text-transform: uppercase;">${clinicTitle}</h1>
-            <p style="margin: 2px 0; font-size: 11pt;"><b>Bác sĩ:</b> ${doctorName}</p>
-        </div>
-        <div style="text-align: right;">
-            <p style="margin: 0; font-size: 10pt;">Ngày: <b>${date}</b></p>
-            <p style="margin: 0; font-size: 9pt;">Mã BN: ${patient.phone ? patient.phone.slice(-4) : '....'}</p>
-        </div>
-    </div>
-    <div style="text-align: center; margin-bottom: 20px;">
-        <h2 style="font-size: 22pt; font-weight: bold; margin: 0; letter-spacing: 2px; color: #000;">ĐƠN THUỐC</h2>
-    </div>
-    <div style="margin-bottom: 20px; font-size: 12pt; line-height: 1.5; color: #000;">
-        <div><b>Họ tên:</b> <span style="text-transform: uppercase; font-weight: bold;">${patient.name}</span> - <b>Năm sinh:</b> ${patient.year || '....'}</div>
-        <div style="margin-top: 5px;"><b>Chẩn đoán:</b> ${disease}</div>
-        ${symptoms ? `<div style="margin-top: 5px;"><b>Triệu chứng:</b> <i>${symptoms}</i></div>` : ''}
-    </div>`;
-};
-
-window.generatePrintFooter = function(doctorName) {
-    const today = new Date();
-    return `
-    <div style="margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr; text-align: center; font-family: 'Times New Roman', serif; font-size: 12pt; color: #000;">
-        <div><p><b>Người nhận</b></p><p style="font-size: 10pt; margin-top: 5px;">(Ký tên)</p></div>
-        <div>
-            <p><i>Ngày ${today.getDate()} tháng ${today.getMonth() + 1} năm ${today.getFullYear()}</i></p>
-            <p><b>Bác sĩ điều trị</b></p>
-            <div style="margin-top: 60px; font-weight: bold;">${doctorName.replace('BS. ', '')}</div>
-        </div>
-    </div>`;
-};
-
-// Hàm định dạng tiền tệ
 window.fmtMoney = function(n) {
     return parseInt(n || 0).toLocaleString('vi-VN');
 };
 
+// Hàm tạo Header chung cho A4
+window.generatePrintHeader = function(clinicTitle, doctorName, date, patient, disease, symptoms) {
+    return `
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 10px; font-family: 'Times New Roman', serif; color: #000;">
+        <div style="text-align: left;">
+            <h1 style="margin: 0; font-size: 14pt; font-weight: bold; text-transform: uppercase;">${clinicTitle}</h1>
+            <p style="margin: 2px 0; font-size: 10pt;"><b>BS:</b> ${doctorName}</p>
+        </div>
+        <div style="text-align: right;">
+            <p style="margin: 0; font-size: 10pt;">Ngày: <b>${date}</b></p>
+            <p style="margin: 0; font-size: 10pt;">Mã BN: ${patient.phone ? patient.phone.slice(-4) : '....'}</p>
+        </div>
+    </div>
+    <div style="margin-bottom: 10px; font-size: 11pt; line-height: 1.3; color: #000;">
+        <div><b>Họ tên:</b> <span style="text-transform: uppercase; font-weight: bold;">${patient.name}</span> (${patient.year}) - <b>Đ/c:</b> ${patient.address || ''}</div>
+        <div style="margin-top: 3px;"><b>Chẩn đoán:</b> ${disease}</div>
+        ${symptoms ? `<div style="margin-top: 3px;"><b>Triệu chứng:</b> <i>${symptoms}</i></div>` : ''}
+    </div>`;
+};
+
+// Hàm tạo Footer chung
+window.generatePrintFooter = function(doctorName) {
+    const today = new Date();
+    return `
+    <div style="margin-top: 15px; display: grid; grid-template-columns: 1fr 1fr; text-align: center; font-family: 'Times New Roman', serif; font-size: 11pt; color: #000; page-break-inside: avoid;">
+        <div></div>
+        <div>
+            <p><i>Ngày ${today.getDate()} tháng ${today.getMonth() + 1} năm ${today.getFullYear()}</i></p>
+            <p><b>Bác sĩ điều trị</b></p>
+            <div style="margin-top: 50px; font-weight: bold;">${doctorName.replace('BS. ', '')}</div>
+        </div>
+    </div>`;
+};
+
 window.preparePrint = function(type) {
-    const pid = document.getElementById('vPid').value; 
-    const p = (window.db || []).find(x => x.id == pid); 
-    if (!p) return alert("Chưa chọn bệnh nhân!");
+    try {
+        const pid = document.getElementById('vPid').value; 
+        const p = (window.db || []).find(x => x.id == pid); 
+        if (!p) return alert("Chưa chọn bệnh nhân!");
 
-    const visitData = window.currentVisit || { rxEast: [], rxWest: [], procs: [] };
-    const clinicTitle = window.config.clinicTitle || 'PHÒNG KHÁM YHCT';
-    const doctorName = window.config.doctorName ? 'BS. ' + window.config.doctorName : 'BS. Đông Y';
-    const visitDate = document.getElementById('vDate').value.split('-').reverse().join('/');
-    const disease = document.getElementById('vDiseaseSelect').value || document.getElementById('vDiseaseInput').value;
-    const symptoms = document.getElementById('vSpecial').value || '';
-    
-    // Header & Footer chung
-    const headerHtml = window.generatePrintHeader(clinicTitle, doctorName, visitDate, p, disease, symptoms);
-    const footerHtml = window.generatePrintFooter(doctorName);
+        const visitData = window.currentVisit || { rxEast: [], rxWest: [], procs: [] };
+        const clinicTitle = window.config.clinicTitle || 'PHÒNG KHÁM YHCT';
+        const doctorName = window.config.doctorName ? 'BS. ' + window.config.doctorName : 'BS. Đông Y';
+        const visitDate = document.getElementById('vDate').value.split('-').reverse().join('/');
+        const disease = document.getElementById('vDiseaseSelect').value || document.getElementById('vDiseaseInput').value;
+        const symptoms = document.getElementById('vSpecial').value || '';
+        
+        // Header & Footer chung
+        const headerHtml = window.generatePrintHeader(clinicTitle, doctorName, visitDate, p, disease, symptoms);
+        const footerHtml = window.generatePrintFooter(doctorName);
 
-    // Lấy thông tin đầu vào để tính toán lại chính xác
-    const manualPriceEast = parseInt(document.getElementById('vEastManualPrice').value) || 0;
-    const manualPriceWest = parseInt(document.getElementById('vWestManualPrice').value) || 0;
-    const eastDays = parseInt(document.getElementById('vEastDays').value) || 1;
-    const westDays = parseInt(document.getElementById('vWestDays').value) || 1;
+        // Lấy thông tin đầu vào
+        const manualPriceEast = parseInt(document.getElementById('vEastManualPrice').value) || 0;
+        const manualPriceWest = parseInt(document.getElementById('vWestManualPrice').value) || 0;
+        const eastDays = parseInt(document.getElementById('vEastDays').value) || 1;
+        const westDays = parseInt(document.getElementById('vWestDays').value) || 1;
 
-    // --- TÍNH TOÁN LẠI TỔNG TIỀN (REAL-TIME CALCULATION) ---
-    // Đảm bảo không phụ thuộc vào text hiển thị trên UI
-    
-    // 1. Tiền Đông Y
-    let calcEastTotal = 0;
-    if (manualPriceEast > 0) {
-        calcEastTotal = manualPriceEast * eastDays;
-    } else {
-        const sumIng = visitData.rxEast.reduce((acc, cur) => acc + ((cur.qty||0) * (cur.price||0)), 0);
-        calcEastTotal = sumIng * eastDays;
-    }
+        // --- TÍNH TOÁN TIỀN (LOGIC CHÍNH XÁC) ---
+        // 1. Tiền Đông Y
+        let calcEastTotal = 0;
+        if (manualPriceEast > 0) {
+            calcEastTotal = manualPriceEast * eastDays;
+        } else {
+            const sumIng = visitData.rxEast.reduce((acc, cur) => acc + ((cur.qty||0) * (cur.price||0)), 0);
+            calcEastTotal = sumIng * eastDays;
+        }
 
-    // 2. Tiền Tây Y
-    let calcWestTotal = 0;
-    if (manualPriceWest > 0) {
-        calcWestTotal = manualPriceWest * westDays;
-    } else {
-        // Tây y: Tổng tiền = Tổng (SL * Đơn giá)
-        calcWestTotal = visitData.rxWest.reduce((acc, cur) => acc + ((cur.qty||0) * (cur.price||0)), 0);
-    }
+        // 2. Tiền Tây Y
+        let calcWestTotal = 0;
+        if (manualPriceWest > 0) {
+            calcWestTotal = manualPriceWest * westDays;
+        } else {
+            calcWestTotal = visitData.rxWest.reduce((acc, cur) => acc + ((cur.qty||0) * (cur.price||0)), 0);
+        }
 
-    // 3. Tiền Thủ thuật
-    let calcProcTotal = 0;
-    visitData.procs.forEach(p => {
-        calcProcTotal += Math.round((p.price||0)*(p.days||1)*(1-(p.discount||0)/100));
-    });
+        // 3. Tiền Thủ thuật
+        let calcProcTotal = 0;
+        visitData.procs.forEach(p => {
+            calcProcTotal += Math.round((p.price||0)*(p.days||1)*(1-(p.discount||0)/100));
+        });
 
-    // 4. Tổng cộng và Thành tiền sau giảm giá
-    const rawTotal = calcEastTotal + calcWestTotal + calcProcTotal;
-    const discountPercent = parseInt(document.getElementById('vDiscountPercent').value) || 0;
-    const finalTotal = Math.round(rawTotal * (1 - discountPercent/100));
-    const paidText = document.getElementById('vPaid').checked ? "ĐÃ THANH TOÁN" : "CHƯA THANH TOÁN";
+        // 4. Tổng cộng và Thành tiền
+        const rawTotal = calcEastTotal + calcWestTotal + calcProcTotal;
+        const discountPercent = parseInt(document.getElementById('vDiscountPercent').value) || 0;
+        const finalTotal = Math.round(rawTotal * (1 - discountPercent/100));
 
+        // Ẩn tất cả section trước khi in
+        document.querySelectorAll('.print-section').forEach(el => el.classList.add('hidden'));
 
-    // Ẩn tất cả section trước khi in
-    document.querySelectorAll('.print-section').forEach(el => el.classList.add('hidden'));
-
-    // --- 1. IN TOA ĐÔNG Y (Chi tiết Thuốc + Giá nếu có nhập tay) ---
-    if (type === 'east') {
-        const eastSec = document.getElementById('printEast');
-        if (eastSec && visitData.rxEast.length > 0) {
-            eastSec.classList.remove('hidden');
+        // ============================================================
+        // TYPE 1: IN ĐƠN ĐÔNG Y
+        // ============================================================
+        if (type === 'east') {
+            const container = document.getElementById('printEast');
+            container.classList.remove('hidden');
             
-            // Render bảng thuốc
             let rows = visitData.rxEast.map((m, i) => 
-                `<tr style="border-bottom: 1px dashed #ccc;">
-                    <td style="width: 40px; text-align: center; padding: 6px 0;">${i+1}</td>
-                    <td style="padding: 6px 0; font-weight: bold;">${m.name}</td>
-                    <td style="width: 80px; text-align: right; padding-right: 10px;">${m.qty} g</td>
+                `<tr style="border-bottom: 1px dotted #ccc;">
+                    <td style="width: 30px; text-align: center;">${i+1}</td>
+                    <td style="font-weight: bold;">${m.name}</td>
+                    <td style="width: 60px; text-align: right;">${m.qty} g</td>
                 </tr>`).join('');
             
-            // Chỉ hiện giá nếu có nhập giá trọn gói
+            // Chỉ hiện giá nếu có nhập giá trọn gói > 0
             let priceRow = '';
             if (manualPriceEast > 0) {
                 priceRow = `<div style="text-align: right; font-weight: bold; margin-top: 10px; font-size: 12pt;">Thành tiền (${eastDays} thang): ${window.fmtMoney(calcEastTotal)} đ</div>`;
             }
 
-            eastSec.innerHTML = `
+            container.innerHTML = `
                 ${headerHtml}
-                <div style="margin-bottom: 10px; font-weight: bold; font-size: 14pt; border-bottom: 1px solid #000; display: inline-block;">Đơn Thuốc YHCT (${eastDays} thang)</div>
-                <table style="width: 100%; border-collapse: collapse; font-size: 12pt;">
-                    <thead><tr style="border-bottom: 2px solid #000;"><th style="text-align: center;">STT</th><th style="text-align: left;">Vị thuốc</th><th style="text-align: right; padding-right: 10px;">Lượng</th></tr></thead>
+                <div style="text-align: center; margin-bottom: 10px;"><h2 style="margin:0; font-size:16pt; text-transform:uppercase;">Đơn Thuốc Đông Y</h2><p>(${eastDays} thang)</p></div>
+                <table style="width: 100%; border-collapse: collapse; font-size: 11pt;">
+                    <thead><tr style="border-bottom: 1px solid #000;"><th style="text-align: center;">STT</th><th style="text-align: left;">Vị thuốc</th><th style="text-align: right;">KL</th></tr></thead>
                     <tbody>${rows}</tbody>
                 </table>
+                <div style="margin-top: 10px; font-size: 11pt;"><b>Hướng dẫn:</b> <i>${document.getElementById('vEastNote').value}</i></div>
                 ${priceRow}
-                <div style="margin-top: 15px; font-size: 12pt;"><b>Cách dùng:</b> <i>${document.getElementById('vEastNote').value}</i></div>
                 ${footerHtml}`;
         }
-    }
 
-    // --- 2. IN TOA TÂY Y (Chi tiết Thuốc + Giá nếu có nhập tay) ---
-    if (type === 'west') {
-        const westSec = document.getElementById('printWest');
-        if (westSec && visitData.rxWest.length > 0) {
-            westSec.classList.remove('hidden');
+        // ============================================================
+        // TYPE 2: IN ĐƠN TÂY Y
+        // ============================================================
+        else if (type === 'west') {
+            const container = document.getElementById('printWest');
+            container.classList.remove('hidden');
 
             let rows = visitData.rxWest.map((m, i) => 
-                `<tr style="border-bottom: 1px dashed #ccc;">
-                    <td style="width: 40px; text-align: center; padding: 8px 0;">${i+1}</td>
-                    <td style="padding: 8px 0;"><b>${m.name}</b></td>
-                    <td style="width: 60px; text-align: center;">${m.qty}</td>
-                    <td style="padding: 8px 0; font-style: italic;">${m.usage || ''}</td>
+                `<tr style="border-bottom: 1px dotted #ccc;">
+                    <td style="width: 30px; text-align: center; vertical-align: top; padding-top:5px;">${i+1}</td>
+                    <td style="padding-top:5px;">
+                        <div style="font-weight: bold;">${m.name}</div>
+                        <div style="font-size: 10pt; font-style: italic;">${m.usage || ''}</div>
+                    </td>
+                    <td style="width: 50px; text-align: center; vertical-align: top; padding-top:5px; font-weight:bold;">${m.qty}</td>
                 </tr>`).join('');
 
-            // Chỉ hiện giá nếu có nhập giá trọn gói
+            // Chỉ hiện giá nếu có nhập giá trọn gói > 0
             let priceRow = '';
             if (manualPriceWest > 0) {
                 priceRow = `<div style="text-align: right; font-weight: bold; margin-top: 10px; font-size: 12pt;">Thành tiền: ${window.fmtMoney(calcWestTotal)} đ</div>`;
             }
 
-            westSec.innerHTML = `
+            container.innerHTML = `
                 ${headerHtml}
-                <div style="margin-bottom: 10px; font-weight: bold; font-size: 14pt; border-bottom: 1px solid #000; display: inline-block;">Đơn Thuốc Tây Y (${westDays} ngày)</div>
-                <table style="width: 100%; border-collapse: collapse; font-size: 12pt;">
-                    <thead><tr style="border-bottom: 2px solid #000;"><th style="text-align: center;">STT</th><th style="text-align: left;">Tên thuốc</th><th style="text-align: center;">SL</th><th style="text-align: left;">Cách dùng</th></tr></thead>
+                <div style="text-align: center; margin-bottom: 10px;"><h2 style="margin:0; font-size:16pt; text-transform:uppercase;">Đơn Thuốc Tây Y</h2><p>(Dùng trong ${westDays} ngày)</p></div>
+                <table style="width: 100%; border-collapse: collapse; font-size: 11pt;">
+                    <thead><tr style="border-bottom: 1px solid #000;"><th style="text-align: center;">STT</th><th style="text-align: left;">Tên thuốc / Cách dùng</th><th style="text-align: center;">SL</th></tr></thead>
                     <tbody>${rows}</tbody>
                 </table>
+                <div style="margin-top: 10px; font-size: 11pt;"><b>Lời dặn:</b> <i>${document.getElementById('vWestNote').value}</i></div>
                 ${priceRow}
-                <div style="margin-top: 15px; font-size: 12pt;"><b>Lời dặn:</b> <i>${document.getElementById('vWestNote').value}</i></div>
                 ${footerHtml}`;
         }
-    }
 
-    // --- 3. IN CẢ HAI (Chi tiết Thuốc + Tách riêng giá ĐY/TY/Tổng) ---
-    if (type === 'both') {
-        const bothSec = document.getElementById('printBoth');
-        if(bothSec) {
-            bothSec.classList.remove('hidden');
+        // ============================================================
+        // TYPE 3: IN CẢ HAI (Tổng hợp 2 đơn)
+        // ============================================================
+        else if (type === 'both') {
+            const container = document.getElementById('printBoth');
+            container.classList.remove('hidden');
+            
             let content = headerHtml;
             
             // Phần Đông Y
             if (visitData.rxEast.length > 0) {
-                let rowsE = visitData.rxEast.map((m, i) => `<tr><td style="width:30px;text-align:center;">${i+1}</td><td>${m.name}</td><td style="text-align:right;">${m.qty}g</td></tr>`).join('');
+                let rowsE = visitData.rxEast.map((m, i) => `${m.name}(${m.qty}g)`).join(', ');
                 content += `
-                <div style="margin-top:10px;">
-                    <div style="font-weight:bold; font-size:13pt; border-bottom:1px solid #000; display:inline-block;">I. Đông Y (${eastDays} thang)</div>
-                    <table style="width:100%; font-size:12pt; margin-top:5px;">${rowsE}</table>
-                    <div style="font-size:11pt; margin-top:5px;"><i>HDSD: ${document.getElementById('vEastNote').value}</i></div>
+                <div style="margin-bottom: 15px; border: 1px solid #ccc; padding: 10px; border-radius: 5px;">
+                    <div style="font-weight:bold; border-bottom:1px dashed #ccc; padding-bottom:5px; margin-bottom:5px;">I. ĐÔNG Y (${eastDays} thang)</div>
+                    <div style="text-align:justify; font-size:11pt;">${rowsE}</div>
+                    <div style="font-size:10pt; margin-top:5px; font-style:italic;">HDSD: ${document.getElementById('vEastNote').value}</div>
                 </div>`;
             }
 
             // Phần Tây Y
             if (visitData.rxWest.length > 0) {
-                let rowsW = visitData.rxWest.map((m, i) => `<tr><td style="width:30px;text-align:center;">${i+1}</td><td><b>${m.name}</b></td><td style="text-align:center;">${m.qty}</td><td>${m.usage||''}</td></tr>`).join('');
+                let rowsW = visitData.rxWest.map((m, i) => 
+                    `<div><b>${i+1}. ${m.name}</b> (${m.qty} viên): <i>${m.usage}</i></div>`
+                ).join('');
                 content += `
-                <div style="margin-top:20px;">
-                    <div style="font-weight:bold; font-size:13pt; border-bottom:1px solid #000; display:inline-block;">II. Tây Y (${westDays} ngày)</div>
-                    <table style="width:100%; font-size:12pt; margin-top:5px;">${rowsW}</table>
-                    <div style="font-size:11pt; margin-top:5px;"><i>Lời dặn: ${document.getElementById('vWestNote').value}</i></div>
+                <div style="margin-bottom: 15px; border: 1px solid #ccc; padding: 10px; border-radius: 5px;">
+                    <div style="font-weight:bold; border-bottom:1px dashed #ccc; padding-bottom:5px; margin-bottom:5px;">II. TÂY Y (${westDays} ngày)</div>
+                    <div style="font-size:11pt;">${rowsW}</div>
+                    <div style="font-size:10pt; margin-top:5px; font-style:italic;">Lời dặn: ${document.getElementById('vWestNote').value}</div>
                 </div>`;
             }
 
-            // Phần Tổng tiền: Hiển thị chi tiết từng khoản
-            content += `<div style="border-top: 2px solid #000; padding-top: 10px; margin-top: 20px;">`;
-            
-            if (calcEastTotal > 0) {
-                content += `<div style="text-align: right; font-size: 12pt;">Tiền thuốc Đông Y: <b>${window.fmtMoney(calcEastTotal)} đ</b></div>`;
-            }
-            if (calcWestTotal > 0) {
-                content += `<div style="text-align: right; font-size: 12pt;">Tiền thuốc Tây Y: <b>${window.fmtMoney(calcWestTotal)} đ</b></div>`;
-            }
-            
-            const medTotal = calcEastTotal + calcWestTotal;
-            content += `<div style="text-align: right; font-weight: bold; font-size: 14pt; margin-top:5px;">Tổng cộng: ${window.fmtMoney(medTotal)} đ</div>`;
-            content += `</div>`;
-            
+            // Tổng tiền
+            content += `<div style="text-align: right; font-size: 14pt; font-weight: bold; border-top: 2px solid #000; padding-top: 10px;">Tổng cộng: ${window.fmtMoney(finalTotal)} đ</div>`;
             content += footerHtml;
-            bothSec.innerHTML = content;
+            container.innerHTML = content;
         }
-    }
-    
-    // --- 4. IN HÓA ĐƠN (Chi tiết thủ thuật, Thuốc gộp dòng) ---
-    if (type === 'invoice') {
-        const invSec = document.getElementById('printInvoice');
-        if(invSec) {
-            invSec.classList.remove('hidden');
+        
+        // ============================================================
+        // TYPE 4: IN HÓA ĐƠN (Invoice) - FIX LỖI & QR CODE
+        // ============================================================
+        else if (type === 'invoice') {
+            const container = document.getElementById('printInvoice');
+            if (!container) return alert("Lỗi: Không tìm thấy khung in hóa đơn trong HTML!");
+            
+            container.classList.remove('hidden');
             
             let content = `
-                <div style="text-align:center; margin-bottom:15px;">
-                    <h2 style="font-size:16pt; font-weight:bold; margin:0;">HÓA ĐƠN DỊCH VỤ</h2>
-                    <p style="font-size:10pt; margin:5px 0;">${clinicTitle}</p>
+                <div style="text-align:center; margin-bottom:10px;">
+                    <h2 style="font-size:14pt; font-weight:bold; margin:0;">HÓA ĐƠN DỊCH VỤ</h2>
+                    <p style="font-size:10pt; margin:0;">${clinicTitle}</p>
                 </div>
-                <div style="border-bottom:1px dashed #000; padding-bottom:5px; margin-bottom:10px;">
-                    <p style="margin:2px 0;">BN: <b>${p.name}</b> (${p.year})</p>
+                <div style="border-bottom:1px dashed #000; padding-bottom:5px; margin-bottom:10px; font-size:10pt;">
+                    <p style="margin:2px 0;">Khách hàng: <b>${p.name}</b></p>
                     <p style="margin:2px 0;">Ngày: ${visitDate}</p>
                 </div>
+                <div style="font-size:10pt;">
             `;
 
-            // 1. Liệt kê chi tiết Thủ thuật / Dịch vụ
+            // 1. Chi tiết từng Thủ thuật
             if (visitData.procs && visitData.procs.length > 0) {
-                content += `<div style="border-bottom:1px dashed #ccc; margin-bottom:5px; padding-bottom:5px; font-weight:bold;">Thủ Thuật / Dịch Vụ:</div>`;
                 visitData.procs.forEach(p => {
                     const price = Math.round((p.price||0)*(p.days||1)*(1-(p.discount||0)/100));
                     content += `
-                    <div style="display:flex; justify-content:space-between; margin-bottom:2px; padding-left:5px;">
-                        <span>- ${p.name} ${p.days > 1 ? `(x${p.days})` : ''}</span>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                        <span>${p.name} ${p.days > 1 ? `(x${p.days})` : ''}</span>
                         <b>${window.fmtMoney(price)}</b>
                     </div>`;
                 });
             }
 
-            // 2. Thuốc Đông Y (Gộp nhóm, hiển thị số thang)
+            // 2. Thuốc Đông Y (Ghi gộp dòng)
+            // Chỉ hiển thị nếu có tiền (tức là có kê thuốc và có giá trị)
             if (calcEastTotal > 0) {
                  content += `
-                <div style="display:flex; justify-content:space-between; margin-top:5px; border-top:1px dashed #ccc; padding-top:5px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
                     <span>Thuốc Đông Y (${eastDays} thang)</span>
                     <b>${window.fmtMoney(calcEastTotal)}</b>
                 </div>`;
             }
             
-            // 3. Thuốc Tây Y (Gộp nhóm, hiển thị số ngày)
+            // 3. Thuốc Tây Y (Ghi gộp dòng)
             if (calcWestTotal > 0) {
                  content += `
-                <div style="display:flex; justify-content:space-between; margin-top:2px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
                     <span>Thuốc Tây Y (${westDays} ngày)</span>
                     <b>${window.fmtMoney(calcWestTotal)}</b>
                 </div>`;
             }
-                
+            
+            content += `</div>`; // End content div
+
             // Tổng kết
             content += `
-                <div style="border-top:2px solid #000; margin-top:10px; padding-top:5px; display:flex; justify-content:space-between; font-size:14pt; font-weight:bold;">
+                <div style="border-top:2px solid #000; margin-top:10px; padding-top:5px; display:flex; justify-content:space-between; font-size:12pt; font-weight:bold;">
                     <span>TỔNG CỘNG:</span>
                     <span>${window.fmtMoney(finalTotal)} đ</span>
                 </div>
-                <div style="text-align:center; margin-top:15px; font-style:italic;">
-                    <p style="font-weight:bold;">(${paid})</p>
+            `;
+
+            // QR Code (Nếu có trong Config)
+            const qrImage = window.config.qrCodeImage || '';
+            if (qrImage) {
+                content += `
+                <div style="text-align:center; margin-top:15px;">
+                    <img src="${qrImage}" style="width:120px; height:120px; object-fit:contain; border:1px solid #ccc;">
+                    <p style="font-size:9pt; margin-top:5px; font-style:italic;">Quét mã để thanh toán</p>
+                </div>`;
+            }
+
+            content += `
+                <div style="text-align:center; margin-top:10px; font-style:italic; font-size:10pt;">
                     <p>Cảm ơn quý khách!</p>
                 </div>
             `;
             
-            invSec.innerHTML = content;
+            container.innerHTML = content;
         }
-    }
 
-    // Thực hiện lệnh in sau 500ms
-    setTimeout(() => { 
-        window.print(); 
-    }, 500);
+        // Lệnh in trình duyệt sau 500ms để đảm bảo ảnh load kịp
+        setTimeout(() => { 
+            window.print(); 
+        }, 500);
+        
+    } catch(e) { 
+        console.error(e); 
+        alert("Lỗi khi tạo bản in: " + e.message); 
+    }
 };
 
 // --- 6. HỆ THỐNG THÔNG BÁO (TOAST) ---
@@ -464,7 +472,7 @@ window.showToast = function(message, type = 'info', action = null) {
     }, duration);
 };
 
-// --- 7. TÍNH NĂNG KÉO THẢ (DRAGGABLE) - ĐÃ FIX LỖI CUỘN TRANG ---
+// --- 7. TÍNH NĂNG KÉO THẢ (DRAGGABLE) ---
 
 window.makeDraggable = function(elmntId, onClickCallback) {
     const elmnt = document.getElementById(elmntId);
