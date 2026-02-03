@@ -1,32 +1,19 @@
 /**
  * FILE: modules_core/knowledge-base-ui.js
- * CHỨC NĂNG: Giao diện Knowledge Base 2.0 (Split View) + AI Dashboard + Image Upload.
- * CẬP NHẬT: 
- * - AI Box: Nút bấm Toggle (Thêm/Xóa) trực quan ngay trong bảng gợi ý.
- * - Thông tin thuốc: Hiển thị chi tiết Chỉ định, CCĐ, Tương tác.
- * - Tích hợp Tí Ngọ vào đầu bảng gợi ý huyệt.
- * - Sticky Footer: Nút tác vụ dính dưới đáy.
+ * CHỨC NĂNG: Giao diện Knowledge Base 2.0 (Split View) + Form Sửa Chi Tiết (Đã đồng bộ).
  */
 
 window.KnowledgeUI = {
-    // ============================================================
-    // 1. TRẠNG THÁI & CẤU HÌNH
-    // ============================================================
     state: { mode: 'view', type: 'herb', selectedId: null, filterGroup: 'all', searchTerm: '' },
-    imgConfig: { maxWidth: 1200, quality: 0.75, maxSizeMB: 1.5 },
     tempData: {},
 
-    // ============================================================
-    // 2. KHỞI TẠO & ĐIỀU KHIỂN MODAL
-    // ============================================================
-
+    // --- CÁC HÀM CƠ BẢN (GIỮ NGUYÊN) ---
     open: function(type = 'herb') {
         this.state.type = type;
         this.state.mode = 'view';
         this.state.selectedId = null;
         this.state.filterGroup = 'all';
         this.state.searchTerm = '';
-        
         this.renderModalStructure();
         this.renderSidebar();
         this.renderRightPanel(null); 
@@ -35,29 +22,21 @@ window.KnowledgeUI = {
 
     close: function() {
         document.getElementById('kbModal').classList.remove('active');
-        // Refresh lại các màn hình bên ngoài để đồng bộ dữ liệu
         if(window.renderMedList) { window.renderMedList('east'); window.renderMedList('west'); }
         if(window.renderSelectedAcupoints) window.renderSelectedAcupoints();
         if(window.refreshAiSuggestion) window.refreshAiSuggestion(false);
     },
 
-    // ============================================================
-    // 3. XỬ LÝ DỮ LIỆU
-    // ============================================================
-
     getAllItems: function() {
         let items = [];
         const type = this.state.type;
-        // 1. Lấy dữ liệu hệ thống
         if (type === 'herb' && window.knowledge?.herbsDB) items = [...window.knowledge.herbsDB];
         else if (type === 'acu' && window.knowledge?.acupoints) items = [...window.knowledge.acupoints];
         else if (type === 'west' && window.knowledge?.westDB) items = [...window.knowledge.westDB];
 
-        // 2. Lấy dữ liệu người dùng (Custom)
         if (!window.config.userKnowledge) window.config.userKnowledge = { herbs: [], west: [], acu: [] };
         let userItems = type === 'herb' ? window.config.userKnowledge.herbs : (type === 'west' ? window.config.userKnowledge.west : window.config.userKnowledge.acu) || [];
 
-        // 3. Hợp nhất (Ưu tiên ID người dùng nếu trùng)
         const combinedMap = new Map();
         items.forEach(i => combinedMap.set(i.id || ('sys_'+i.name), { ...i, id: i.id || ('sys_'+i.name), isSystem: true }));
         userItems.forEach(i => combinedMap.set(i.id, { ...i, isUser: true }));
@@ -65,7 +44,6 @@ window.KnowledgeUI = {
         return Array.from(combinedMap.values());
     },
 
-    // Tìm kiếm thông minh (Ưu tiên ID, sau đó đến Tên)
     getItem: function(idOrName) { 
         const all = this.getAllItems();
         return all.find(i => i.id === idOrName) || all.find(i => i.name === idOrName);
@@ -80,10 +58,7 @@ window.KnowledgeUI = {
         return Array.from(groups).sort();
     },
 
-    // ============================================================
-    // 4. RENDER GIAO DIỆN (VIEW)
-    // ============================================================
-
+    // --- RENDER GIAO DIỆN CHÍNH ---
     renderModalStructure: function() {
         if (!document.getElementById('kbModal')) {
             const html = `
@@ -135,7 +110,6 @@ window.KnowledgeUI = {
         
         const items = this.getAllItems();
         
-        // Render Filter Options (nếu chưa có)
         const groupSelect = document.getElementById('kbGroupFilter');
         if (groupSelect && groupSelect.children.length <= 1) {
              const groups = this.getGroups();
@@ -161,7 +135,6 @@ window.KnowledgeUI = {
             const bgClass = isActive ? 'bg-[#5d4037] text-white shadow-md border-transparent' : 'bg-white text-[#3e2723] hover:bg-[#efebe9] border-[#e0e0e0]';
             const subText = (this.state.type === 'herb' ? (i.category || i.group) : (this.state.type === 'acu' ? (i.meridian || i.group) : i.group)) || 'Chưa phân nhóm';
             
-            // Check trạng thái trong đơn
             let isAdded = false;
             if (this.state.type === 'herb') isAdded = window.currentVisit.rxEast.some(x => x.name === i.name);
             else if (this.state.type === 'west') isAdded = window.currentVisit.rxWest.some(x => x.name === i.name);
@@ -188,93 +161,14 @@ window.KnowledgeUI = {
         this.renderRightPanel(id); 
     },
 
-    // --- AI PANEL (TÍCH HỢP NÚT TOGGLE & TÍ NGỌ) ---
-    _getAiPanelHtml: function(currentItem = null) {
-        // Lấy dữ liệu phân tích từ Knowledge Engine
-        const symptomInput = document.getElementById('vSpecial');
-        const visitSymptoms = symptomInput ? symptomInput.value : '';
-        const tuChan = window.currentVisit.tuChan || {};
-        
-        let analysis = null;
-        if (window.knowledge && window.knowledge.analyze) {
-            analysis = window.knowledge.analyze(visitSymptoms, tuChan);
-        }
-
-        if (!analysis) return '';
-
-        // Helper tạo nút Toggle (Xanh/Trắng)
-        const createToggleBtn = (type, value, label) => {
-            let isSelected = false;
-            let onClickFn = "";
-            
-            if (type === 'point') {
-                isSelected = window.currentVisit.acupoints.some(p => p.id === value);
-                onClickFn = `window.KnowledgeBridge.toggleItem('${value}', 'point')`;
-            } else if (type === 'herb') {
-                isSelected = window.currentVisit.rxEast.some(h => h.name.toLowerCase() === value.toLowerCase());
-                onClickFn = `window.KnowledgeBridge.toggleItem('${value}', 'herb')`;
-            } else if (type === 'west') {
-                isSelected = window.currentVisit.rxWest.some(w => w.name.toLowerCase() === value.toLowerCase());
-                onClickFn = `window.KnowledgeBridge.toggleItem('${value}', 'west')`;
-            }
-
-            if (isSelected) {
-                // Trạng thái: ĐÃ CHỌN (Màu Xanh) -> Bấm để XÓA
-                return `<button onclick="${onClickFn}" class="px-2 py-1 rounded text-[10px] font-bold border flex items-center gap-1 transition-all bg-green-600 text-white border-green-700 shadow-sm hover:bg-green-700 active:scale-95 mb-1 mr-1">
-                    <span>✓</span> ${label}
-                </button>`;
-            } else {
-                // Trạng thái: CHƯA CHỌN (Màu Trắng) -> Bấm để THÊM
-                return `<button onclick="${onClickFn}" class="px-2 py-1 rounded text-[10px] font-bold border bg-white border-gray-300 text-gray-700 hover:bg-[#5d4037] hover:text-white hover:border-[#5d4037] transition-all shadow-sm active:scale-95 mb-1 mr-1">
-                    + ${label}
-                </button>`;
-            }
-        };
-
-        let showAi = false;
-        let aiContent = '';
-
-        // --- A. HIỂN THỊ TÍ NGỌ (NẾU ĐANG TRA CỨU HUYỆT) ---
-        if (this.state.type === 'acu' && analysis.timeBasedSuggestion) {
-            showAi = true;
-            // Hiển thị nguyên khối HTML chi tiết từ knowledge-ai.js
-            aiContent += `
-            <div class="mb-3 bg-white/80 p-1 rounded-lg">
-                ${analysis.timeBasedSuggestion}
-            </div>`;
-        }
-
-        // --- B. HIỂN THỊ GỢI Ý (NÚT BẤM) ---
-        if (this.state.type === 'herb' && analysis.herbs.length > 0) {
-            showAi = true;
-            aiContent += `<div class="flex flex-wrap gap-1 mt-1">${analysis.herbs.map(h => createToggleBtn('herb', h, h)).join('')}</div>`;
-        } else if (this.state.type === 'west' && analysis.west.length > 0) {
-            showAi = true;
-            aiContent += `<div class="flex flex-wrap gap-1 mt-1">${analysis.west.map(w => createToggleBtn('west', w, w)).join('')}</div>`;
-        } else if (this.state.type === 'acu' && analysis.points.length > 0) {
-            showAi = true;
-            aiContent += `<div class="flex flex-wrap gap-1 mt-1">${analysis.points.map(id => createToggleBtn('point', id, id)).join('')}</div>`;
-        }
-
-        if (showAi) {
-            return `
-            <div class="mb-6 bg-[#f1f8e9] border border-[#a5d6a7] rounded-xl p-4 shadow-sm relative overflow-hidden">
-                <div class="flex items-center gap-2 mb-2 pb-1 border-b border-[#c5e1a5]">
-                    <span class="text-xl">💡</span>
-                    <h4 class="text-sm font-bold text-[#33691e] uppercase">AI Gợi ý ${analysis.syndromeFound ? `(${analysis.syndromeFound})` : ''}</h4>
-                </div>
-                ${aiContent}
-            </div>`;
-        }
-        return '';
-    },
-
+    // --- PANEL CHI TIẾT (VIEW MODE) ---
     renderRightPanel: function(id = null) {
         const container = document.getElementById('kbRightPanel');
         const item = id ? this.getItem(id) : null;
         
-        // Luôn render AI Box ở trên cùng
-        const aiBoxHtml = this._getAiPanelHtml(item);
+        // Gọi hàm của Bridge để hiển thị AI nếu có
+        let aiBoxHtml = "";
+        if (this._getAiPanelHtml) aiBoxHtml = this._getAiPanelHtml(item);
         
         let detailHtml = '';
         
@@ -291,24 +185,17 @@ window.KnowledgeUI = {
                      <input type="file" id="kbImgInput" accept="image/*" class="hidden" onchange="window.KnowledgeUI.handleImageUpload(this)">
                    </div>`;
 
-            // --- NỘI DUNG CHI TIẾT ---
+            // RENDER NỘI DUNG DỰA TRÊN TYPE
             let contentBody = '';
             
-            if (this.state.type === 'herb') { // ĐÔNG DƯỢC
+            if (this.state.type === 'herb') { 
                 contentBody = `
                 <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div class="bg-orange-50 p-3 rounded-lg border border-orange-100">
-                        <span class="block text-[10px] font-bold text-orange-400 uppercase">Tính Vị</span>
-                        <div class="font-bold text-[#5d4037] text-sm">${info.tinh_vi || '---'}</div>
-                    </div>
-                    <div class="bg-blue-50 p-3 rounded-lg border border-blue-100">
-                        <span class="block text-[10px] font-bold text-blue-600 uppercase">Quy Kinh</span>
-                        <div class="font-bold text-blue-900 text-sm">${info.quy_kinh || '---'}</div>
-                    </div>
+                    <div class="bg-orange-50 p-3 rounded-lg border border-orange-100"><span class="block text-[10px] font-bold text-orange-400 uppercase">Tính Vị</span><div class="font-bold text-[#5d4037] text-sm">${info.tinh_vi || '---'}</div></div>
+                    <div class="bg-blue-50 p-3 rounded-lg border border-blue-100"><span class="block text-[10px] font-bold text-blue-600 uppercase">Quy Kinh</span><div class="font-bold text-blue-900 text-sm">${info.quy_kinh || '---'}</div></div>
                 </div>
                 <div class="bg-green-50 p-3 rounded-lg border border-green-100 mb-4 flex items-center justify-between">
-                    <span class="text-[10px] font-bold text-green-600 uppercase">Liều lượng</span>
-                    <div class="font-black text-green-800 text-base">${info.lieu_luong || '---'}</div>
+                    <span class="text-[10px] font-bold text-green-600 uppercase">Liều lượng</span><div class="font-black text-green-800 text-base">${info.lieu_luong || '---'}</div>
                 </div>
                 <div class="space-y-4">
                     <div class="group"><h4 class="text-xs font-bold text-[#8d6e63] uppercase border-b border-dashed border-[#d7ccc8] pb-1 mb-2">Công Năng & Chủ Trị</h4><p class="text-sm text-[#3e2723] bg-white p-4 rounded-xl border border-[#eee] shadow-sm text-justify leading-relaxed">${info.cong_nang || item.function || '...'}</p></div>
@@ -316,7 +203,7 @@ window.KnowledgeUI = {
                     ${info.kieng_ky ? `<div class="group"><h4 class="text-xs font-bold text-red-500 uppercase border-b border-dashed border-red-200 pb-1 mb-2">Kiêng Kỵ</h4><p class="text-sm text-red-800 bg-red-50 p-4 rounded-xl border border-red-100 text-justify font-medium">${info.kieng_ky}</p></div>` : ''}
                 </div>`;
 
-            } else if (this.state.type === 'west') { // TÂY Y
+            } else if (this.state.type === 'west') { 
                 contentBody = `
                 <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 mb-4 shadow-sm">
                     <span class="block text-[10px] font-bold text-blue-600 uppercase mb-1">Chỉ Định Điều Trị</span>
@@ -332,7 +219,7 @@ window.KnowledgeUI = {
                     ${info.tac_dung_phu ? `<div class="group"><h4 class="text-xs font-bold text-gray-500 uppercase border-b border-dashed border-gray-300 pb-1 mb-2">Tác Dụng Phụ</h4><div class="text-sm text-gray-600 bg-white p-3 rounded-xl border border-gray-200">${info.tac_dung_phu}</div></div>` : ''}
                 </div>`;
 
-            } else if (this.state.type === 'acu') { // HUYỆT VỊ
+            } else if (this.state.type === 'acu') { 
                 contentBody = `
                 <div class="bg-[#f2ebe0] p-4 rounded-xl border border-[#d7ccc8] mb-4 shadow-sm">
                     <span class="block text-[10px] font-bold text-[#8d6e63] uppercase">Vị trí</span>
@@ -340,16 +227,6 @@ window.KnowledgeUI = {
                 </div>
                 <div class="group"><h4 class="text-xs font-bold text-[#8d6e63] uppercase border-b border-dashed border-[#d7ccc8] pb-1 mb-2">Tác Dụng & Chủ Trị</h4><p class="text-sm text-[#3e2723] bg-white p-4 rounded-xl border border-[#eee] text-justify leading-relaxed"><b>Tác dụng:</b> ${item.function || info.tac_dung || ''}<br/><br/><b>Chủ trị:</b> ${item.indications || info.chu_tri || ''}</p></div>`;
             }
-
-            // --- NÚT STICKY FOOTER (ADD/REMOVE) ---
-            let isAdded = false;
-            if (this.state.type === 'herb') isAdded = window.currentVisit.rxEast.some(x => x.name === item.name);
-            else if (this.state.type === 'west') isAdded = window.currentVisit.rxWest.some(x => x.name === item.name);
-            else if (this.state.type === 'acu') isAdded = window.currentVisit.acupoints.some(x => x.id === item.id);
-
-            const btnAction = `window.KnowledgeBridge.toggleItem('${item.id || item.name}', '${this.state.type}')`;
-            const btnClass = isAdded ? 'bg-red-600 border-red-700 hover:bg-red-700' : 'bg-[#5d4037] border-[#3e2723] hover:bg-[#4e342e]';
-            const btnLabel = isAdded ? '🗑️ XÓA KHỎI ĐƠN' : '✅ THÊM VÀO ĐƠN';
 
             detailHtml = `
                 <div class="mb-6 border-b border-dashed border-[#d7ccc8] pb-4 flex justify-between items-start">
@@ -361,28 +238,167 @@ window.KnowledgeUI = {
                 </div>
                 ${imgHtml}
                 ${contentBody}
-                
-                <div class="sticky bottom-0 bg-white/95 backdrop-blur border-t border-[#d7ccc8] p-4 mt-6 -mx-6 -mb-8 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] flex justify-end gap-3 z-20">
-                    <button onclick="window.KnowledgeUI.close()" class="px-5 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-100 border border-transparent hover:border-gray-200 transition-colors text-xs uppercase">Đóng</button>
-                    <button onclick="${btnAction}" class="px-8 py-3 text-white font-bold rounded-xl shadow-lg active:scale-95 transition-all flex items-center gap-2 border text-xs uppercase tracking-wide ${btnClass}">${btnLabel}</button>
-                </div>
-                <div class="h-10"></div>`; 
+                <div class="h-20"></div>`; 
         } else {
             detailHtml = `<div class="flex flex-col items-center justify-center py-20 text-gray-400 opacity-60"><div class="text-6xl mb-4 grayscale">👈</div><p class="text-sm font-medium text-center">Chọn mục bên trái để xem chi tiết.</p></div>`;
         }
 
         container.innerHTML = `<div class="p-6 md:p-8 flex-1 h-full overflow-y-auto custom-scrollbar">${aiBoxHtml}${detailHtml}</div>`;
+        
+        // Gọi lại monkey patch (trong knowledge-bridge.js) để chèn nút Sticky Footer nếu có
+        if (window.KnowledgeUI.renderDetail !== window.KnowledgeUI._originalRenderDetail) {
+             // (Logic này đã được xử lý bởi file bridge)
+        }
     },
 
-    // --- CRUD ---
-    handleImageUpload: function(input) { if (input.files && input.files[0]) { const reader = new FileReader(); reader.readAsDataURL(input.files[0]); reader.onload = (e) => { this.tempData.image = e.target.result; if(this.state.mode==='edit') this.renderEditForm(); else { this.startEdit(this.state.selectedId); this.tempData.image = e.target.result; this.renderEditForm(); } }; } },
-    startAdd: function() { this.state.mode = 'add'; this.state.selectedId = null; this.tempData = { id: 'u_'+Date.now(), name: '', group: '', image: '', info: {} }; this.renderEditForm(); },
-    startEdit: function(id) { const item = this.getItem(id); if(!item) return; this.state.mode = 'edit'; this.tempData = JSON.parse(JSON.stringify(item)); if(!this.tempData.group) this.tempData.group = (this.state.type==='herb'?this.tempData.category:this.tempData.meridian); this.renderEditForm(); },
+    // --- FORM SỬA / THÊM (EDIT MODE) - ĐÃ CẬP NHẬT LOGIC ---
     
-    renderEditForm: function() { 
-        const container = document.getElementById('kbRightPanel'); const d = this.tempData; const groups = this.getGroups(); const dl = `<datalist id="groupSuggestions">${groups.map(g=>`<option value="${g}">`).join('')}</datalist>`;
-        container.innerHTML = `<div class="p-6 md:p-8 flex-1 bg-[#fffcf7] flex flex-col h-full"><div class="flex justify-between items-center mb-4 border-b border-[#d7ccc8] pb-2"><h3 class="font-bold text-lg text-[#3e2723] uppercase">${this.state.mode==='add'?'Thêm Mới':'Chỉnh Sửa'}</h3><div class="flex gap-2">${this.state.mode==='edit'?`<button onclick="window.KnowledgeUI.deleteItem()" class="text-red-500 font-bold text-xs px-3 py-2 border border-red-100 rounded">Xóa</button>`:''}<button onclick="window.KnowledgeUI.saveItem()" class="bg-[#5d4037] text-white px-6 py-2 rounded-xl font-bold shadow-lg">LƯU</button></div></div><div class="flex-1 overflow-y-auto custom-scrollbar pr-2 pb-10"><div class="mb-6"><label class="song-label">Hình ảnh</label><div class="w-full h-48 border-2 border-dashed border-[#d7ccc8] rounded-xl flex flex-col items-center justify-center bg-gray-50 relative overflow-hidden group hover:bg-gray-100 cursor-pointer" onclick="document.getElementById('kbImgInputEdit').click()">${d.image?`<img src="${d.image}" class="w-full h-full object-contain">`:`<span class=\"text-4xl text-gray-300 mb-2\">📷</span>`} <input type=\"file\" id=\"kbImgInputEdit\" accept=\"image/*\" class=\"hidden\" onchange=\"window.KnowledgeUI.handleImageUpload(this)\"></div></div><div class=\"grid grid-cols-2 gap-4 mb-4\"><div><label class=\"song-label\">Tên *</label><input type=\"text\" class=\"song-input font-bold\" value=\"${d.name||''}\" onchange=\"window.KnowledgeUI.tempData.name=this.value\"></div><div><label class=\"song-label\">Nhóm *</label><input type=\"text\" list=\"groupSuggestions\" class=\"song-input font-bold\" value=\"${d.group||''}\" onchange=\"window.KnowledgeUI.tempData.group=this.value\"> ${dl}</div></div><div class=\"space-y-4\"><div><label class=\"song-label\">Liều lượng / Công năng</label><textarea class=\"song-input h-24\" onchange=\"if(!window.KnowledgeUI.tempData.info) window.KnowledgeUI.tempData.info={}; window.KnowledgeUI.tempData.info.cong_nang=this.value; window.KnowledgeUI.tempData.info.lieu_luong=this.value;\">${d.info?.cong_nang||d.info?.lieu_luong||''}</textarea></div><div><label class=\"song-label\">Kiêng kỵ / CCĐ</label><textarea class=\"song-input h-20\" onchange=\"if(!window.KnowledgeUI.tempData.info) window.KnowledgeUI.tempData.info={}; window.KnowledgeUI.tempData.info.kieng_ky=this.value; window.KnowledgeUI.tempData.info.chong_chi_dinh=this.value;\">${d.info?.kieng_ky||d.info?.chong_chi_dinh||''}</textarea></div></div></div></div>`;
+    handleImageUpload: function(input) { 
+        if (input.files && input.files[0]) { 
+            const reader = new FileReader(); 
+            reader.readAsDataURL(input.files[0]); 
+            reader.onload = (e) => { 
+                this.tempData.image = e.target.result; 
+                this.renderEditForm(); 
+            }; 
+        } 
     },
-    saveItem: async function() { const d=this.tempData; if(!d.name||!d.group) { alert("Thiếu tên/nhóm!"); return; } if(!window.config.userKnowledge) window.config.userKnowledge={herbs:[],west:[],acu:[]}; let k=this.state.type==='herb'?'herbs':(this.state.type==='west'?'west':'acu'); let l=window.config.userKnowledge[k]; const i=l.findIndex(x=>x.id===d.id); const it={...d, info:d.info||{}}; if(this.state.type==='herb') it.category=d.group; else if(this.state.type==='acu') it.meridian=d.group; if(i>-1) l[i]=it; else l.push(it); if(window.saveConfig) await window.saveConfig(); this.renderSidebar(); this.selectItem(d.id); if(window.showToast) window.showToast("✅ Đã lưu!", "success"); },
-    deleteItem: async function() { if(!confirm("Xóa?")) return; let k=this.state.type==='herb'?'herbs':(this.state.type==='west'?'west':'acu'); window.config.userKnowledge[k]=window.config.userKnowledge[k].filter(i=>i.id!==this.tempData.id); await window.saveConfig(); this.state.selectedId=null; this.renderSidebar(); this.renderRightPanel(null); }
+    
+    startAdd: function() { 
+        this.state.mode = 'add'; 
+        this.state.selectedId = null; 
+        this.tempData = { id: 'u_'+Date.now(), name: '', group: '', image: '', info: {} }; 
+        this.renderEditForm(); 
+    },
+    
+    startEdit: function(id) { 
+        const item = this.getItem(id); 
+        if(!item) return; 
+        this.state.mode = 'edit'; 
+        this.tempData = JSON.parse(JSON.stringify(item)); 
+        if(!this.tempData.group) this.tempData.group = (this.state.type==='herb'?this.tempData.category:this.tempData.meridian); 
+        this.renderEditForm(); 
+    },
+    
+    // [UPDATE] Hàm render form thông minh theo loại dữ liệu
+    renderEditForm: function() { 
+        const container = document.getElementById('kbRightPanel'); 
+        const d = this.tempData; 
+        if(!d.info) d.info = {};
+
+        const groups = this.getGroups(); 
+        const dl = `<datalist id="groupSuggestions">${groups.map(g=>`<option value="${g}">`).join('')}</datalist>`;
+
+        // Helper tạo ô input
+        const createInput = (label, key, isArea = false, placeholder="") => {
+            const val = d.info[key] || (this.state.type==='acu' ? (key==='tac_dung' ? d.function : (key==='chu_tri' ? d.indications : '')) : '') || '';
+            const onChg = `onchange="if(!window.KnowledgeUI.tempData.info) window.KnowledgeUI.tempData.info={}; window.KnowledgeUI.tempData.info['${key}']=this.value"`;
+            if(isArea) return `<div><label class="song-label">${label}</label><textarea class="song-input h-20" placeholder="${placeholder}" ${onChg}>${val}</textarea></div>`;
+            return `<div><label class="song-label">${label}</label><input type="text" class="song-input" value="${val}" placeholder="${placeholder}" ${onChg}></div>`;
+        };
+
+        let dynamicFields = '';
+
+        if (this.state.type === 'herb') {
+            dynamicFields = `
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    ${createInput('Tính vị', 'tinh_vi', false, 'VD: Cay, ấm...')}
+                    ${createInput('Quy kinh', 'quy_kinh', false, 'VD: Phế, Tỳ...')}
+                </div>
+                ${createInput('Liều lượng', 'lieu_luong', false, 'VD: 4 - 12g')}
+                ${createInput('Công năng & Chủ trị', 'cong_nang', true, 'Tác dụng chính...')}
+                ${createInput('Phối hợp', 'phoi_hop', true, 'Dùng chung với...')}
+                ${createInput('Kiêng kỵ', 'kieng_ky', true, 'Phụ nữ có thai, người âm hư...')}
+            `;
+        } else if (this.state.type === 'west') {
+            dynamicFields = `
+                ${createInput('Chỉ định điều trị', 'chi_dinh', true, 'Dùng cho bệnh gì...')}
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    ${createInput('Liều lượng', 'lieu_luong', false, 'VD: 1 viên/lần...')}
+                    ${createInput('Đường dùng', 'duong_dung', false, 'VD: Uống sau ăn...')}
+                </div>
+                ${createInput('⛔ Chống chỉ định', 'chong_chi_dinh', true, 'Người mẫn cảm, suy gan...')}
+                ${createInput('⚠️ Tương tác thuốc', 'tuong_tac', true, 'Không uống rượu bia...')}
+                ${createInput('Tác dụng phụ', 'tac_dung_phu', true, 'Buồn nôn, chóng mặt...')}
+            `;
+        } else if (this.state.type === 'acu') {
+            dynamicFields = `
+                ${createInput('Vị trí huyệt', 'vi_tri', true, 'Mô tả cách xác định...')}
+                ${createInput('Tác dụng', 'tac_dung', true, 'Khu phong, tán hàn...')}
+                ${createInput('Chủ trị', 'chu_tri', true, 'Đau đầu, đau lưng...')}
+            `;
+        }
+
+        container.innerHTML = `
+        <div class="p-6 md:p-8 flex-1 bg-[#fffcf7] flex flex-col h-full">
+            <div class="flex justify-between items-center mb-4 border-b border-[#d7ccc8] pb-2">
+                <h3 class="font-bold text-lg text-[#3e2723] uppercase">${this.state.mode==='add'?'Thêm Mới':'Chỉnh Sửa'}</h3>
+                <div class="flex gap-2">
+                    ${this.state.mode==='edit'?`<button onclick="window.KnowledgeUI.deleteItem()" class="text-red-500 font-bold text-xs px-3 py-2 border border-red-100 rounded hover:bg-red-50">Xóa</button>`:''}
+                    <button onclick="window.KnowledgeUI.saveItem()" class="bg-[#5d4037] text-white px-6 py-2 rounded-xl font-bold shadow-lg hover:bg-[#4e342e]">LƯU</button>
+                </div>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto custom-scrollbar pr-2 pb-10 space-y-4">
+                <div class="mb-4">
+                    <label class="song-label">Hình ảnh minh họa</label>
+                    <div class="w-full h-48 border-2 border-dashed border-[#d7ccc8] rounded-xl flex flex-col items-center justify-center bg-gray-50 relative overflow-hidden group hover:bg-gray-100 cursor-pointer" onclick="document.getElementById('kbImgInputEdit').click()">
+                        ${d.image ? `<img src="${d.image}" class="w-full h-full object-contain mix-blend-multiply">` : `<span class="text-4xl text-gray-300 mb-2">📷</span><span class="text-xs text-gray-400">Chạm để tải ảnh</span>`} 
+                        <input type="file" id="kbImgInputEdit" accept="image/*" class="hidden" onchange="window.KnowledgeUI.handleImageUpload(this)">
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="song-label">Tên thuốc/huyệt *</label>
+                        <input type="text" class="song-input font-bold" value="${d.name||''}" onchange="window.KnowledgeUI.tempData.name=this.value">
+                    </div>
+                    <div>
+                        <label class="song-label">Nhóm/Phân loại *</label>
+                        <input type="text" list="groupSuggestions" class="song-input font-bold" value="${d.group||''}" onchange="window.KnowledgeUI.tempData.group=this.value"> ${dl}
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-dashed border-[#d7ccc8]">
+                    ${dynamicFields}
+                </div>
+            </div>
+        </div>`;
+    },
+
+    saveItem: async function() { 
+        const d = this.tempData; 
+        if(!d.name || !d.group) { alert("Vui lòng nhập tên và nhóm!"); return; } 
+        
+        if(!window.config.userKnowledge) window.config.userKnowledge = { herbs: [], west: [], acu: [] }; 
+        
+        let k = this.state.type === 'herb' ? 'herbs' : (this.state.type === 'west' ? 'west' : 'acu'); 
+        let list = window.config.userKnowledge[k]; 
+        
+        const idx = list.findIndex(x => x.id === d.id); 
+        const itemToSave = { ...d, info: d.info || {} }; 
+        
+        // Mapping các trường cũ sang mới để tương thích
+        if (this.state.type === 'herb') itemToSave.category = d.group; 
+        else if (this.state.type === 'acu') itemToSave.meridian = d.group; 
+        
+        if (idx > -1) list[idx] = itemToSave; 
+        else list.push(itemToSave); 
+        
+        if (window.saveConfig) await window.saveConfig(); 
+        
+        this.renderSidebar(); 
+        this.selectItem(d.id); 
+        if (window.showToast) window.showToast("✅ Đã lưu dữ liệu!", "success"); 
+    },
+
+    deleteItem: async function() { 
+        if(!confirm("Bạn có chắc muốn xóa mục này?")) return; 
+        let k = this.state.type === 'herb' ? 'herbs' : (this.state.type === 'west' ? 'west' : 'acu'); 
+        window.config.userKnowledge[k] = window.config.userKnowledge[k].filter(i => i.id !== this.tempData.id); 
+        await window.saveConfig(); 
+        this.state.selectedId = null; 
+        this.renderSidebar(); 
+        this.renderRightPanel(null); 
+    }
 };
