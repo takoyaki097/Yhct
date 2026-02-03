@@ -1,8 +1,8 @@
 /**
- * FILE: js/config-disease.js
+ * FILE: configs/config-disease.js
  * CHỨC NĂNG: Quản lý Thêm/Sửa/Xóa Bệnh mẫu và Thuốc mẫu (Đông y/Tây y).
- * PHỤ THUỘC: window.config, window.tempEastOptions (từ config-core.js), window.CONFIG_MEDICINE (từ config-medicine.js)
- * CẬP NHẬT: Loại bỏ hiệu ứng ẩn nút (hover) để nút Sửa/Xóa luôn hiện trên Mobile.
+ * PHỤ THUỘC: window.config, window.tempEastOptions, window.CONFIG_MEDICINE
+ * CẬP NHẬT: Tích hợp chọn Bài thuốc mẫu vào form Bệnh.
  */
 
 /* ==========================================================================
@@ -70,6 +70,74 @@ window.addNewDiseaseInline = async function() {
 };
 
 /* ==========================================================================
+   [MỚI] LOGIC LIÊN KẾT BÀI THUỐC MẪU (INTEGRATION LOGIC)
+   ========================================================================== */
+
+// Hàm A: Nạp danh sách bài thuốc mẫu vào Dropdown
+window.renderSampleSelectorInDiseaseModal = function() {
+    const select = document.getElementById('diseaseSampleSelect');
+    if (!select) return;
+
+    // Lấy bài thuốc từ User Config trước, nếu không có thì lấy Mặc định hệ thống
+    let samples = window.config.samplePrescriptions || [];
+    if (samples.length === 0 && window.CONFIG_MEDICINE) {
+        samples = window.CONFIG_MEDICINE.DEFAULT_EAST_SAMPLES;
+    }
+
+    // Render options
+    let html = '<option value="">📥 Nạp bài mẫu...</option>';
+    if (samples && samples.length > 0) {
+        html += samples.map((s, i) => 
+            `<option value="${i}">${s.name} (${s.ingredients ? s.ingredients.length : 0} vị)</option>`
+        ).join('');
+    } else {
+        html += '<option value="" disabled>Chưa có bài mẫu</option>';
+    }
+    
+    select.innerHTML = html;
+};
+
+// Hàm B: Xử lý khi chọn một bài mẫu -> Điền vào form
+window.importSampleToDisease = function() {
+    const select = document.getElementById('diseaseSampleSelect');
+    const index = select.value;
+    if (index === "") return;
+
+    // Lấy nguồn dữ liệu
+    let samples = window.config.samplePrescriptions || [];
+    if (samples.length === 0 && window.CONFIG_MEDICINE) {
+        samples = window.CONFIG_MEDICINE.DEFAULT_EAST_SAMPLES;
+    }
+
+    const selectedSample = samples[index];
+    if (!selectedSample) return;
+
+    // Xác nhận trước khi ghi đè
+    if (confirm(`Bạn có muốn nạp bài thuốc "${selectedSample.name}" vào ô hiện tại không?\n(Dữ liệu cũ trong ô này sẽ bị thay thế)`)) {
+        
+        // 1. Cập nhật tên bài thuốc trên UI
+        const nameInput = document.getElementById('diseaseEastName');
+        if (nameInput) nameInput.value = selectedSample.name;
+
+        // 2. Cập nhật biến tạm (tempEastOptions)
+        if (window.currentEastOptionIndex > -1 && window.tempEastOptions[window.currentEastOptionIndex]) {
+            window.tempEastOptions[window.currentEastOptionIndex].name = selectedSample.name;
+            // Deep copy mảng ingredients để tránh tham chiếu
+            window.tempEastOptions[window.currentEastOptionIndex].ingredients = JSON.parse(JSON.stringify(selectedSample.ingredients));
+        }
+
+        // 3. Render lại danh sách vị thuốc trên giao diện
+        window.renderEastTabsInSettings();
+        
+        // Thông báo nhỏ (Optional)
+        // if(window.showToast) window.showToast("Đã nạp bài thuốc thành công", "success");
+    }
+
+    // Reset dropdown về mặc định
+    select.value = "";
+};
+
+/* ==========================================================================
    PHẦN 2: MODAL CHI TIẾT BỆNH (EDIT DISEASE MODAL)
    ========================================================================== */
 
@@ -96,6 +164,9 @@ window.addNewDisease = function() {
     
     // Render Tabs Đông y
     window.renderEastTabsInSettings();
+    
+    // [UPDATE] Render Dropdown bài thuốc mẫu
+    window.renderSampleSelectorInDiseaseModal();
     
     // Mở modal
     document.getElementById('diseaseModal').classList.add('active');
@@ -132,6 +203,10 @@ window.editDisease = function(index) {
     }
     
     window.renderEastTabsInSettings();
+    
+    // [UPDATE] Render Dropdown bài thuốc mẫu
+    window.renderSampleSelectorInDiseaseModal();
+
     document.getElementById('diseaseModal').classList.add('active');
 };
 
@@ -356,7 +431,7 @@ window.saveDisease = async function() {
 };
 
 /* ==========================================================================
-   PHẦN 5: QUẢN LÝ BÀI THUỐC MẪU (SAMPLE PRESCRIPTIONS) - QUAN TRỌNG
+   PHẦN 5: QUẢN LÝ BÀI THUỐC MẪU (SAMPLE PRESCRIPTIONS)
    ========================================================================== */
 
 // 1. Render danh sách bài thuốc mẫu
@@ -373,7 +448,7 @@ window.renderSamplePrescriptionSettings = function() {
 
     let html = '';
 
-    // Nút Reset/Nạp lại luôn hiển thị nếu có dữ liệu hệ thống (để fix lỗi dữ liệu rác)
+    // Nút Reset/Nạp lại luôn hiển thị nếu có dữ liệu hệ thống
     if (hasSystemData) {
         html += `
         <div class="mb-3 pb-2 border-b border-dashed border-gray-200 flex justify-end">
@@ -402,7 +477,7 @@ window.renderSamplePrescriptionSettings = function() {
     list.innerHTML = html;
 };
 
-// [FIX] Hàm Import dữ liệu từ config-medicine.js vào config người dùng
+// Hàm Import dữ liệu từ config-medicine.js
 window.importSystemSamples = async function() {
     if (!window.CONFIG_MEDICINE || !window.CONFIG_MEDICINE.DEFAULT_EAST_SAMPLES) {
         alert("Lỗi: Không tìm thấy dữ liệu mẫu trong file config-medicine.js!");
