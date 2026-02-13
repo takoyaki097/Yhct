@@ -1,0 +1,128 @@
+/* ==========================================================================
+   FILE: css/hub.css
+   CHỨC NĂNG: Style cho Trung tâm Thông báo & Nút Hội tụ (Action Hub).
+   PHONG CÁCH: Song Dynasty + 3D Glassmorphism (Deep Depth).
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. ANIMATIONS
+   -------------------------------------------------------------------------- */
+@keyframes badge-pulse {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); }
+    70% { transform: scale(1.1); box-shadow: 0 0 0 6px rgba(220, 38, 38, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+}
+.animate-badge { animation: badge-pulse 2s infinite; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in { animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+.badge-dot { display: inline-block; box-shadow: 0 0 4px rgba(239, 68, 68, 0.6); }
+
+/* --------------------------------------------------------------------------
+   2. HUB MENU (Nút trôi nổi)
+   -------------------------------------------------------------------------- */
+#floatingHubContainer.active #hubActions {
+    opacity: 1 !important;
+    transform: translateY(0) scale(1) !important;
+    pointer-events: auto !important;
+}
+#floatingHubContainer.active #hubMainLabel {
+    /* Khi mở menu thì biến thành dấu X màu đỏ */
+    color: #ef4444 !important; /* Red-500 */
+    transform: rotate(0deg) scale(1.2);
+}
+
+/* --------------------------------------------------------------------------
+   3. NOTIFICATION PANEL
+   -------------------------------------------------------------------------- */
+#notificationPanel.active { opacity: 1 !important; visibility: visible !important; }
+#notificationPanel.active #notifBox { transform: translate(0, 0) !important; }
+
+#notificationPanel button.active {
+    background-color: #fff; color: #5d4037;
+    border: 1px solid #d7ccc8;
+    box-shadow: 0 2px 4px rgba(93, 64, 55, 0.1); font-weight: 800;
+}
+
+/* --------------------------------------------------------------------------
+   4. NOTIFICATION ITEM
+   -------------------------------------------------------------------------- */
+.notif-item {
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(215, 204, 200, 0.5);
+    border-radius: 12px; padding: 10px 12px;
+    position: relative; transition: all 0.2s ease;
+    border-left: 3px solid transparent;
+}
+.notif-item:hover { background: #fff; box-shadow: 0 2px 8px rgba(93, 64, 55, 0.05); transform: translateX(-2px); }
+
+.notif-item.type-warning { border-left-color: #f59e0b; }
+.notif-item.type-warning .notif-icon { background: #fffbeb; color: #b45309; }
+
+.notif-item.type-danger { border-left-color: #ef4444; }
+.notif-item.type-danger .notif-icon { background: #fef2f2; color: #b91c1c; }
+
+.notif-item.type-info { border-left-color: #3b82f6; }
+.notif-item.type-info .notif-icon { background: #eff6ff; color: #1d4ed8; }
+
+.notif-action-btn {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    padding: 4px 8px; border-radius: 6px; cursor: pointer;
+    transition: all 0.2s; background: #fff; border: 1px solid #d7ccc8; color: #5d4037;
+    display: inline-flex; align-items: center; gap: 4px;
+}
+.notif-action-btn:hover { background: #5d4037; color: #fff; border-color: #5d4037; }
+
+/* --------------------------------------------------------------------------
+   5. QUICK NOTE
+   -------------------------------------------------------------------------- */
+#quickNoteModal.active { opacity: 1 !important; visibility: visible !important; }
+#quickNoteModal.active #quickNoteBox { transform: scale(1) !important; }
+
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.02); }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #d7ccc8; border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #a1887f; }
+
+/* ==========================================================================
+   6. WATER DROPLET GLASS STYLE (ULTRA 3D EDITION)
+   ========================================================================== */
+.btn-water-droplet {
+    background: linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgba(242,235,224,0.4) 50%, rgba(93,64,55,0.3) 100%) !important;
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.6) !important;
+    color: #3e2723 !important;
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.9);
+    
+    /* TẠO ĐỘ NỔI KHỐI MẠNH MẼ (High Contrast Shadows) */
+    box-shadow: 
+        /* Bóng đổ sâu xuống dưới nền (Drop Shadow) */
+        0 15px 35px rgba(62, 39, 35, 0.4),
+        /* Ánh sáng phản chiếu góc trên trái (Highlight) */
+        inset 4px 4px 8px rgba(255, 255, 255, 0.9),
+        /* Bóng tối tạo chiều sâu góc dưới phải (Shadow) */
+        inset -4px -4px 10px rgba(62, 39, 35, 0.25) !important;
+    
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important; /* Hiệu ứng nảy (Bouncy) */
+}
+
+.btn-water-droplet:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 
+        0 20px 40px rgba(62, 39, 35, 0.5),
+        inset 4px 4px 12px rgba(255, 255, 255, 1),
+        inset -4px -4px 12px rgba(62, 39, 35, 0.3) !important;
+}
+
+/* Khi nhấn xuống */
+.btn-water-droplet:active {
+    transform: translateY(4px) scale(0.95) !important;
+    box-shadow: 
+        0 5px 10px rgba(62, 39, 35, 0.3),
+        inset 2px 2px 5px rgba(255, 255, 255, 0.6),
+        inset -2px -2px 5px rgba(62, 39, 35, 0.2) !important;
+}
