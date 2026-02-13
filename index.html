@@ -17,17 +17,19 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="css/core.css">       
     <link rel="stylesheet" href="css/main-ui.css">    
     <link rel="stylesheet" href="css/bioclock.css">
+    <link rel="stylesheet" href="css/hub.css">
 
     <style>
-        /* CSS nội bộ cho màn hình Loading */
+        /* Màn hình chờ (Loader) */
         #globalLoader { position: fixed; inset: 0; z-index: 99999; background: #f2ebe0; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease; }
         .loader-spinner { width: 50px; height: 50px; border: 4px solid #d7ccc8; border-top: 4px solid #5d4037; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -112,7 +114,10 @@
     <script src="knowledge/database.js"></script>
     <script src="knowledge/knowledge-time.js"></script>
     <script src="knowledge/knowledge-ziwu.js"></script>
-    <script src="knowledge/knowledge-ai.js"></script>
+
+    <script src="modules_ai/ai-data-dictionary.js"></script>
+    <script src="modules_ai/ai-data-syndromes.js"></script>
+    <script src="modules_ai/ai-engine.js"></script>
 
     <script src="knowledge_data/acu-meridians-1.js"></script>
     <script src="knowledge_data/acu-meridians-2.js"></script>
@@ -129,6 +134,7 @@
     <script src="templates/tpl-modal-herb.js"></script> 
     <script src="templates/tpl-inventory.js"></script>
     <script src="templates/tpl-modal-sample.js"></script>
+    <script src="templates/tpl-hub.js"></script>
 
     <script src="tpl-settings/tab-ui.js"></script>
     <script src="tpl-settings/tab-med.js"></script>
@@ -136,12 +142,17 @@
     <script src="tpl-settings/sub-modals.js"></script>
     <script src="tpl-settings/index.js"></script>
 
+    <script src="modules_print/print-templates.js"></script>
+    <script src="modules_print/print-logic.js"></script>
+    <script src="modules_ui/ui-utils.js"></script>
+    <script src="modules_ui/ui-components.js"></script>
+    <script src="modules_core/ui-helper.js"></script> 
     <script src="templates/template-loader.js"></script>
 
-    <script src="modules_core/ui-helper.js"></script>
     <script src="modules_core/inventory.js"></script>
     <script src="modules_core/patient.js"></script>
     <script src="modules_core/report.js"></script>
+    <script src="modules_core/notification.js"></script>
     <script src="modules_core/knowledge-base-ui.js"></script>
     <script src="modules_core/knowledge-bridge.js"></script>
     <script src="modules_core/main.js"></script>
@@ -150,17 +161,18 @@
     <script src="modules_visit/visit-map.js"></script>
     <script src="modules_visit/visit-meds.js"></script>
     <script src="modules_visit/visit-procs.js"></script>
-    <script src="modules_visit/visit-finish.js"></script>
+    <script src="modules_visit/visit-inventory.js"></script> 
+    <script src="modules_visit/visit-finish.js"></script> 
 
     <script>
-        // A. Khởi tạo Template (Nạp HTML vào trang)
+        // Nạp Template vào DOM (Phải gọi sau khi các file tpl-*.js đã tải xong)
         if(window.loadAllModals) {
             window.loadAllModals();
         } else {
-            console.error("Lỗi: Không tìm thấy template-loader.js! Kiểm tra lại thư mục 'templates'.");
+            console.error("Lỗi: Không tìm thấy template-loader.js! Kiểm tra lại đường dẫn file.");
         }
 
-        // B. Xử lý Loader (Tắt màn hình chờ)
+        // Tắt màn hình chờ khi tải xong
         window.addEventListener('load', function() {
             setTimeout(() => {
                 const loader = document.getElementById('globalLoader');
@@ -174,60 +186,11 @@
                 }
             }, 800); 
             
-            // Khởi tạo Kho (Inventory) nếu chưa chạy
+            // Khởi tạo Kho (Inventory)
             if(window.Inventory && window.Inventory.init) {
                 window.Inventory.init();
             }
         });
-
-        // C. Xử lý nhập file Backup (JSON)
-        window.handleJSONFileSelect = function(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = async function(e) {
-                try {
-                    const jsonContent = JSON.parse(e.target.result);
-                    
-                    if (!jsonContent.db && !jsonContent.config) {
-                        alert("❌ Lỗi: File không đúng định dạng dữ liệu phòng khám!");
-                        return;
-                    }
-
-                    if (confirm("Tìm thấy bản sao lưu hợp lệ!\n\nBạn có muốn khôi phục dữ liệu không?\n(Dữ liệu hiện tại sẽ bị thay thế)")) {
-                        if (jsonContent.db) {
-                            window.db = jsonContent.db;
-                            await localforage.setItem('yhct_db_v49', window.db);
-                        }
-                        if (jsonContent.config) {
-                            const oldBg = window.config ? window.config.headerBgImage : null;
-                            const oldQr = window.config ? window.config.qrCodeImage : null;
-                            window.config = { ...window.defaultConfig, ...jsonContent.config };
-                            // Giữ lại ảnh cũ nếu file backup không có
-                            if (!window.config.headerBgImage && oldBg) window.config.headerBgImage = oldBg;
-                            if (!window.config.qrCodeImage && oldQr) window.config.qrCodeImage = oldQr;
-                            await localforage.setItem('yhct_cfg_v49', window.config);
-                        }
-                        // Khôi phục Kho
-                        if (jsonContent.inventory) {
-                            await localforage.setItem('yhct_inventory', jsonContent.inventory);
-                            if(window.Inventory && window.Inventory.init) await window.Inventory.init();
-                        }
-
-                        alert("✅ Khôi phục thành công! Ứng dụng sẽ tự tải lại.");
-                        window.location.reload();
-                    }
-                } catch (err) {
-                    console.error(err);
-                    alert("❌ Lỗi khi đọc file: " + err.message);
-                } finally {
-                    event.target.value = ''; 
-                }
-            };
-            reader.onerror = function() { alert("Lỗi: Trình duyệt không thể đọc file này!"); };
-            reader.readAsText(file);
-        };
     </script>
 </body>
 </html>
