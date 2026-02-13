@@ -1,7 +1,7 @@
 /**
- * FILE: js/tpl-visit.js
+ * FILE: templates/tpl-visit.js
  * CHỨC NĂNG: Chứa mã HTML của giao diện Khám bệnh (vModal)
- * CẬP NHẬT: Thêm nút "Bài thuốc mẫu" vào giao diện Đông Y.
+ * CẬP NHẬT: Thay thế Checkbox thanh toán bằng 2 nút chọn trạng thái (Validation).
  */
 
 window.TPL_VISIT = `
@@ -161,6 +161,27 @@ window.TPL_VISIT = `
                             <button class="time-btn-large" onclick="window.toggleGlobalEastUsage('Tối')">Tối</button>
                         </div>
 
+                        <div class="flex flex-wrap items-center gap-2 mb-4 bg-[#fff3e0] p-2 rounded-lg border border-[#ffe0b2]">
+                            <div class="flex items-center gap-2 cursor-pointer" onclick="document.getElementById('vIsSacThuoc').click()">
+                                <input type="checkbox" id="vIsSacThuoc" class="w-5 h-5 accent-[#e65100]" onchange="document.getElementById('sacThuocArea').classList.toggle('hidden', !this.checked); window.calcTotal();" onclick="event.stopPropagation()">
+                                <label class="text-xs font-bold text-[#ef6c00] uppercase select-none cursor-pointer">🔥 Hỗ trợ sắc thuốc</label>
+                            </div>
+                            
+                            <div id="sacThuocArea" class="hidden flex items-center gap-2 ml-auto animate-fade-in">
+                                <div class="flex items-center bg-white rounded border border-[#ffe0b2] px-1 shadow-sm">
+                                    <span class="text-[9px] text-gray-400 font-bold px-1 uppercase">Lần</span>
+                                    <input type="number" id="vSacQty" class="w-10 text-center text-xs font-bold text-[#e65100] outline-none h-6 border-l border-gray-100" value="1" onclick="this.select()">
+                                </div>
+                                <span class="text-[9px] text-gray-400">x</span>
+                                <div class="flex items-center bg-white rounded border border-[#ffe0b2] px-1 shadow-sm">
+                                    <input type="number" id="vSacPrice" class="w-16 text-center text-xs font-bold text-[#e65100] outline-none h-6" value="10000" step="1000" onclick="this.select()">
+                                    <span class="text-[9px] text-gray-400 font-bold px-1">đ</span>
+                                </div>
+                                <span class="text-[10px] text-gray-400">=</span>
+                                <span id="displaySacTotal" class="text-xs font-black text-[#e65100]">0đ</span>
+                            </div>
+                        </div>
+
                         <label class="song-label">Giá trọn gói (Nếu muốn)</label>
                         <input type="number" id="vEastManualPrice" class="song-input ipad-input-fix" placeholder="Nhập giá trọn gói để đè giá lẻ..." onchange="window.calcTotal()">
                     </div>
@@ -205,13 +226,25 @@ window.TPL_VISIT = `
                         <input type="hidden" id="vDiscountPercent" value="0">
                     </div>
                 </div>
+                
+                <div class="bg-white p-4 border rounded-xl shadow-sm">
+                    <p class="text-[10px] font-bold uppercase text-gray-400 mb-2 tracking-widest text-center">Xác nhận thanh toán</p>
+                    <input type="hidden" id="vPaidState" value=""> 
+                    <div class="grid grid-cols-2 gap-4">
+                        <button id="btnUnpaid" onclick="window.setPaymentStatus(false)" 
+                                class="py-4 rounded-xl border border-gray-200 text-gray-500 font-bold text-sm uppercase transition-all hover:bg-gray-50">
+                            Chưa thanh toán
+                        </button>
+                        <button id="btnPaid" onclick="window.setPaymentStatus(true)" 
+                                class="py-4 rounded-xl border border-gray-200 text-gray-500 font-bold text-sm uppercase transition-all hover:bg-gray-50">
+                            Đã thanh toán
+                        </button>
+                    </div>
+                </div>
+
                 <div id="qrPaymentSection" class="hidden flex flex-col items-center p-4 border border-[#eee] rounded-xl bg-white">
                     <p class="text-xs font-bold uppercase text-[#5d4037] mb-2">Quét mã thanh toán</p>
                     <img id="displayQrPayment" src="" class="w-48 h-48 object-contain border rounded-lg">
-                </div>
-                <div class="flex items-center justify-center gap-3 p-4 bg-white border rounded-xl shadow-sm">
-                    <input type="checkbox" id="vPaid" class="w-6 h-6 accent-[#5d4037]" checked>
-                    <label for="vPaid" class="font-bold text-[#3e2723] text-lg select-none cursor-pointer">Đã thu tiền</label>
                 </div>
                 
                 <div class="bg-white p-4 border rounded-xl">
