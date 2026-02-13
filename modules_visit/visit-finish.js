@@ -1,35 +1,62 @@
 /**
  * FILE: modules_visit/visit-finish.js
- * CHỨC NĂNG: Tính toán tiền, Lưu bệnh án (kèm trừ kho), In ấn & Copy Zalo.
- * THƯ MỤC: modules_visit/
+ * CHUC NANG: Tinh toan tien, Luu benh an & Copy Zalo
+ * CAP NHAT: Tich hop tinh tien Cong Sac Thuoc & Logic 2 nut thanh toan
  */
 
-// ============================================================
-// 1. TÍNH TOÁN TỔNG TIỀN (CALCULATE TOTAL)
-// ============================================================
+// [NEW] HÀM XỬ LÝ TRẠNG THÁI THANH TOÁN
+window.setPaymentStatus = function(isPaid, skipConfirm = false) {
+    // Nếu chọn Đã thanh toán và không phải đang load dữ liệu cũ (skipConfirm = false)
+    if (isPaid && !skipConfirm) {
+        if (!confirm("💰 Xác nhận khách đã thanh toán đủ tiền?")) {
+            return; // Hủy nếu chọn No
+        }
+    }
 
+    const stateInput = document.getElementById('vPaidState');
+    const btnPaid = document.getElementById('btnPaid');
+    const btnUnpaid = document.getElementById('btnUnpaid');
+
+    if (stateInput && btnPaid && btnUnpaid) {
+        stateInput.value = isPaid ? 'true' : 'false';
+
+        // Update UI Classes
+        if (isPaid) {
+            // Active Paid Button (Xanh)
+            btnPaid.className = "py-4 rounded-xl border border-[#2e7d32] bg-[#e8f5e9] text-[#1b5e20] font-black text-sm uppercase transition-all shadow-sm transform scale-[1.02]";
+            // Deactive Unpaid (Xám mờ)
+            btnUnpaid.className = "py-4 rounded-xl border border-gray-200 text-gray-400 font-bold text-sm uppercase transition-all bg-gray-50 opacity-60";
+        } else {
+            // Active Unpaid Button (Đỏ)
+            btnUnpaid.className = "py-4 rounded-xl border border-[#c62828] bg-[#ffebee] text-[#b71c1c] font-black text-sm uppercase transition-all shadow-sm transform scale-[1.02]";
+            // Deactive Paid (Xám mờ)
+            btnPaid.className = "py-4 rounded-xl border border-gray-200 text-gray-400 font-bold text-sm uppercase transition-all bg-gray-50 opacity-60";
+        }
+    }
+};
+
+// --- 1. TINH TOAN TONG TIEN ---
 window.calcTotal = function() {
-    // 1. Tính tiền Thủ thuật
+    // 1. Tien Thu thuat
     let procTotal = 0; 
     window.currentVisit.procs.forEach(p => { 
         procTotal += Math.round((p.price||0)*(p.days||1)*(1-(p.discount||0)/100)); 
     });
     
-    // 2. Tính tiền Đông Y
+    // 2. Tien Dong Y
     let eastTotal = 0;
     const eastDays = parseInt(document.getElementById('vEastDays').value)||1;
     const eastManual = parseInt(document.getElementById('vEastManualPrice').value)||0; 
     
     window.currentVisit.eastDays = eastDays;
     
-    // Nếu nhập giá tay trọn gói thì lấy giá tay, ngược lại tính tổng các vị thuốc
     if (eastManual > 0) {
         eastTotal = eastManual * eastDays;
     } else {
         eastTotal = window.currentVisit.rxEast.reduce((a,m)=>a+((m.qty||0)*(m.price||0)),0) * eastDays;
     }
     
-    // 3. Tính tiền Tây Y
+    // 3. Tien Tay Y
     let westTotal = 0;
     const westDays = parseInt(document.getElementById('vWestDays').value)||1;
     const westManual = parseInt(document.getElementById('vWestManualPrice').value)||0; 
@@ -39,29 +66,46 @@ window.calcTotal = function() {
     if (westManual > 0) {
         westTotal = westManual * westDays;
     } else {
-        // Tây y thường tính theo đơn vị viên/ngày * số ngày, hoặc tổng số viên * đơn giá
-        // Ở đây giả định qty là TỔNG SỐ VIÊN đã kê
         westTotal = window.currentVisit.rxWest.reduce((a,m)=>a+((m.qty||0)*(m.price||0)),0);
     }
+
+    // 4. Tien Cong Sac Thuoc
+    let sacTotal = 0;
+    const isSac = document.getElementById('vIsSacThuoc') ? document.getElementById('vIsSacThuoc').checked : false;
     
-    // Lưu các giá trị tính được vào biến toàn cục để dùng khi Save
+    if (isSac) {
+        const sQty = parseInt(document.getElementById('vSacQty').value) || 0;
+        const sPrice = parseInt(document.getElementById('vSacPrice').value) || 0;
+        sacTotal = sQty * sPrice;
+        
+        window.currentVisit.isSacThuoc = true;
+        window.currentVisit.sacQty = sQty;
+        window.currentVisit.sacPrice = sPrice;
+    } else {
+        window.currentVisit.isSacThuoc = false;
+    }
+    
+    // Luu gia tri manual
     window.currentVisit.manualMedTotalEast = eastTotal; 
     window.currentVisit.manualMedTotalWest = westTotal;
     
-    // 4. Cập nhật UI hiển thị tổng từng phần
+    // Update UI
     document.getElementById('displayMedTotalEast').innerText = eastTotal.toLocaleString()+'đ'; 
     document.getElementById('displayMedTotalWest').innerText = westTotal.toLocaleString()+'đ'; 
     document.getElementById('displayProcTotal').innerText = procTotal.toLocaleString()+'đ';
     
-    // 5. Tính tổng cộng và Chiết khấu
-    const total = eastTotal + westTotal + procTotal; 
+    if(document.getElementById('displaySacTotal')) {
+        document.getElementById('displaySacTotal').innerText = sacTotal.toLocaleString()+'đ';
+    }
+    
+    // Tong cong & Chiet khau
+    const total = eastTotal + westTotal + procTotal + sacTotal; 
     document.getElementById('displayGrandTotal').innerText = total.toLocaleString()+'đ';
     
     const disc = parseInt(document.getElementById('vDiscountPercent').value)||0; 
     const finalVal = Math.round(total*(1-disc/100));
     document.getElementById('finalTotal').innerText = finalVal.toLocaleString()+'đ';
     
-    // 6. Cập nhật hiển thị thành tiền trên từng dòng thuốc Đông y (để đồng bộ khi đổi số thang)
     const eastContainer = document.getElementById('vMedListEast'); 
     if(eastContainer && eastContainer.children) {
         Array.from(eastContainer.children).forEach((el,i)=>{ 
@@ -74,10 +118,7 @@ window.calcTotal = function() {
     }
 };
 
-// ============================================================
-// 2. LƯU & IN (SAVE & PRINT)
-// ============================================================
-
+// --- 2. LUU PHIEU KHAM ---
 window.saveOnly = function() { window.processSave(false); }; 
 window.saveAndPrint = function() { window.processSave(true); };
 
@@ -86,80 +127,50 @@ window.processSave = async function(print) {
         const pid = document.getElementById('vPid').value; 
         if(!pid) throw new Error("Mất kết nối bệnh nhân. Vui lòng chọn lại bệnh nhân."); 
         
-        // Tính toán lại lần cuối trước khi lưu
+        // [VALIDATION MỚI] Kiểm tra đã chọn trạng thái thanh toán chưa
+        // Giá trị vPaidState sẽ là "true", "false" hoặc rỗng ""
+        const paidStateStr = document.getElementById('vPaidState').value;
+        
+        if (paidStateStr === "") {
+            // Tự động chuyển sang tab 4 (Kết thúc) để người dùng thấy
+            if (window.goToStep) window.goToStep(4);
+            
+            // Dùng setTimeout nhỏ để UI kịp chuyển tab trước khi hiện alert
+            setTimeout(() => {
+                alert("⚠️ CHƯA XÁC NHẬN THANH TOÁN!\n\nVui lòng chọn:\n[CHƯA THANH TOÁN] hoặc [ĐÃ THANH TOÁN]");
+            }, 100);
+            return; // Dừng lại, không lưu
+        }
+
         window.calcTotal();
         
-        // --- [INVENTORY LOGIC START] ---
-        // Xử lý Trừ Kho & Hoàn Trả Kho
-        let newInventoryLogs = []; // Chứa log giao dịch mới để lưu vào visit
-        let oldVisitData = null; 
-        
-        // Tìm bệnh nhân để lấy dữ liệu cũ (nếu đang sửa đơn cũ)
         const pIdx = window.db.findIndex(x => String(x.id) === String(pid));
         if(pIdx === -1) throw new Error("Không tìm thấy bệnh nhân trong CSDL.");
         
         const visitId = parseInt(document.getElementById('vVisitId').value);
+        let oldVisitData = null;
         if(visitId && window.db[pIdx].visits) {
              oldVisitData = window.db[pIdx].visits.find(v => v.id === visitId);
         }
 
-        if (window.Inventory) {
-            // A. Nếu đang Sửa đơn cũ: Hoàn trả (Restore) toàn bộ vật tư của đơn cũ về kho trước
-            if (oldVisitData && oldVisitData.inventoryLogs) {
-                console.log("🔄 Đang hoàn trả kho cho đơn cũ trước khi cập nhật...");
-                await window.Inventory.restoreItems(oldVisitData.inventoryLogs);
-            }
-
-            // B. Trừ kho cho đơn mới (Consume)
-            
-            // 1. Trừ thuốc Đông y
-            const eastDays = parseInt(document.getElementById('vEastDays').value) || 1;
-            for (let med of window.currentVisit.rxEast) {
-                // Tìm item trong kho khớp tên
-                const invItem = window.Inventory.findItemByName(med.name);
-                if (invItem) {
-                    // Đông y tính theo gam * số thang
-                    const amountToDeduct = (med.qty || 0) * eastDays;
-                    if(amountToDeduct > 0) {
-                        const logs = await window.Inventory.consumeItem(invItem.id, amountToDeduct);
-                        if(logs) newInventoryLogs = newInventoryLogs.concat(logs);
-                    }
-                }
-            }
-            
-            // 2. Trừ thuốc Tây y
-            for (let med of window.currentVisit.rxWest) {
-                const invItem = window.Inventory.findItemByName(med.name);
-                if (invItem) {
-                    // Tây y: qty là tổng số viên đã tính toán
-                    const amountToDeduct = med.qty || 0; 
-                     if(amountToDeduct > 0) {
-                        const logs = await window.Inventory.consumeItem(invItem.id, amountToDeduct);
-                        if(logs) newInventoryLogs = newInventoryLogs.concat(logs);
-                    }
-                }
-            }
-
-            // 3. Trừ Vật tư thủ thuật
-            for (let proc of window.currentVisit.procs) {
-                // Kiểm tra xem thủ thuật này có gắn với vật tư nào không
-                // Logic: proc.consumables = { itemId: '...', totalDeduct: ... }
-                if (proc.consumables && proc.consumables.itemId && proc.consumables.totalDeduct > 0) {
-                     const logs = await window.Inventory.consumeItem(proc.consumables.itemId, proc.consumables.totalDeduct);
-                     if(logs) newInventoryLogs = newInventoryLogs.concat(logs);
-                }
-            }
+        let newInventoryLogs = [];
+        if (window.processInventoryConsumption) {
+            newInventoryLogs = await window.processInventoryConsumption(window.currentVisit, oldVisitData);
         }
-        // --- [INVENTORY LOGIC END] ---
 
-        // Tạo object Visit để lưu
+        const isSac = document.getElementById('vIsSacThuoc') ? document.getElementById('vIsSacThuoc').checked : false;
+        const sacQty = isSac ? (parseInt(document.getElementById('vSacQty').value) || 0) : 0;
+        const sacPrice = isSac ? (parseInt(document.getElementById('vSacPrice').value) || 0) : 0;
+
+        // Chuyển đổi trạng thái thanh toán từ chuỗi sang boolean
+        const isPaid = (paidStateStr === 'true');
+
         const visit = {
             id: visitId || Date.now(),
             date: document.getElementById('vDate').value,
             disease: document.getElementById('vDiseaseSelect').value || document.getElementById('vDiseaseInput').value,
             symptoms: document.getElementById('vSpecial').value,
             
-            // Tứ chẩn
             tuChan: window.currentVisit.tuChan, 
             vong: document.getElementById('vVongExtra').value,
             van: document.getElementById('vVanExtra').value,
@@ -168,16 +179,12 @@ window.processSave = async function(print) {
             thietchan: document.getElementById('vThietChanExtra').value,
             machchan: document.getElementById('vMachChanExtra').value,
             
-            // Dữ liệu thuốc & thủ thuật
             rxEast: window.currentVisit.rxEast, 
             rxWest: window.currentVisit.rxWest, 
             procs: window.currentVisit.procs, 
             acupoints: window.currentVisit.acupoints,
-            
-            // Log kho (để sau này hoàn trả nếu xóa)
             inventoryLogs: newInventoryLogs,
 
-            // Cấu hình đơn thuốc
             eastDays: parseInt(document.getElementById('vEastDays').value) || 1, 
             westDays: parseInt(document.getElementById('vWestDays').value) || 1,
             eastNote: document.getElementById('vEastNote').value, 
@@ -185,37 +192,34 @@ window.processSave = async function(print) {
             manualPriceEast: parseInt(document.getElementById('vEastManualPrice').value) || 0, 
             manualPriceWest: parseInt(document.getElementById('vWestManualPrice').value) || 0,
             
-            // Tài chính
+            isSacThuoc: isSac,
+            sacQty: sacQty,
+            sacPrice: sacPrice,
+
             medPriceEast: window.currentVisit.manualMedTotalEast, 
             medPriceWest: window.currentVisit.manualMedTotalWest,
             total: parseInt(document.getElementById('finalTotal').innerText.replace(/[^\d]/g,'')), 
             cost: parseInt(document.getElementById('vCost').value) || 0,
             disc: parseInt(document.getElementById('vDiscountPercent').value) || 0, 
-            paid: document.getElementById('vPaid').checked
+            
+            // [UPDATE] Lưu trạng thái thanh toán chuẩn xác
+            paid: isPaid
         };
         
-        // Cập nhật Database
         if(!window.db[pIdx].visits) window.db[pIdx].visits = []; 
-        
-        // Kiểm tra xem là cập nhật hay tạo mới
         const vIdx = window.db[pIdx].visits.findIndex(v => v.id === visit.id); 
         if(vIdx > -1) window.db[pIdx].visits[vIdx] = visit; 
         else window.db[pIdx].visits.unshift(visit); 
         
-        // Lưu xuống Database (LocalForage)
         if(window.saveDb) await window.saveDb(); 
         
-        // Xử lý sau khi lưu
         if(print) { 
-            // [CẬP NHẬT] Gọi lệnh in HOÁ ĐƠN mặc định
             if(window.preparePrint) window.preparePrint('invoice'); 
         } else { 
-            if(window.showToast) window.showToast("✅ Đã lưu & Trừ kho thành công!", "success"); 
-            else alert("Đã lưu & Cập nhật kho!"); 
+            if(window.showToast) window.showToast("✅ Đã lưu & Cập nhật thành công!", "success"); 
+            else alert("Đã lưu thành công!");
             
             if(window.closeModals) window.closeModals(); 
-            
-            // Refresh lại danh sách bên ngoài nếu cần
             if(window.render) window.render(); 
         } 
         
@@ -225,21 +229,7 @@ window.processSave = async function(print) {
     }
 };
 
-// ============================================================
-// 3. HELPER HOÀN TRẢ KHO (Dùng cho chức năng Xóa bệnh án bên ngoài)
-// ============================================================
-
-window.restoreInventoryFromVisit = async function(visitData) {
-    if (visitData && visitData.inventoryLogs && window.Inventory) {
-        await window.Inventory.restoreItems(visitData.inventoryLogs);
-        console.log("✅ Đã hoàn trả kho từ phiếu khám đã xóa.");
-    }
-};
-
-// ============================================================
-// 4. TÍNH NĂNG ZALO (COPY TO CLIPBOARD)
-// ============================================================
-
+// --- 3. COPY ZALO ---
 window.copyToZalo = function() {
     try {
         const pName = document.getElementById('vPatientName').innerText;
@@ -250,16 +240,19 @@ window.copyToZalo = function() {
         if(symptoms) msg += `📝 Triệu chứng: ${symptoms}\n`;
         msg += `----------------\n`;
         
-        // Phần Đông Y
         if (window.currentVisit.rxEast && window.currentVisit.rxEast.length > 0) {
             msg += `🌿 *ĐƠN THUỐC ĐÔNG Y* (${document.getElementById('vEastDays').value} thang)\n`;
             window.currentVisit.rxEast.forEach((m, i) => { msg += `${i+1}. ${m.name}: ${m.qty}g\n`; });
+            
+            if (document.getElementById('vIsSacThuoc') && document.getElementById('vIsSacThuoc').checked) {
+                msg += `🔥 Hỗ trợ sắc thuốc: ${document.getElementById('vSacQty').value} lần\n`;
+            }
+
             const noteE = document.getElementById('vEastNote').value; 
             if(noteE) msg += `💡 HDSD: ${noteE}\n`; 
             msg += `\n`;
         }
         
-        // Phần Tây Y
         if (window.currentVisit.rxWest && window.currentVisit.rxWest.length > 0) {
             msg += `💊 *ĐƠN THUỐC TÂY Y* (${document.getElementById('vWestDays').value} ngày)\n`;
             window.currentVisit.rxWest.forEach((m, i) => { msg += `${i+1}. ${m.name} (${m.qty} viên): ${m.usage || ''}\n`; });
@@ -268,7 +261,6 @@ window.copyToZalo = function() {
             msg += `\n`;
         }
         
-        // Phần Thủ thuật
         if (window.currentVisit.procs && window.currentVisit.procs.length > 0) {
             msg += `💆 *TRỊ LIỆU*\n`;
             window.currentVisit.procs.forEach((p, i) => { msg += `${i+1}. ${p.name}\n`; });
@@ -277,13 +269,12 @@ window.copyToZalo = function() {
         
         msg += `🗓 Ngày khám: ${document.getElementById('vDate').value}\n----------------\nCảm ơn quý khách!`;
 
-        // Thực hiện Copy
         navigator.clipboard.writeText(msg).then(() => { 
             if(window.showToast) window.showToast("✅ Đã copy nội dung Zalo!", "success"); 
             else alert("Đã copy Zalo!"); 
         }).catch(err => { 
             console.error(err); 
-            alert("Lỗi copy: Không hỗ trợ trên trình duyệt này.");
+            alert("Lỗi copy: Trình duyệt không hỗ trợ.");
         });
         
     } catch (e) { 

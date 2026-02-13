@@ -2,6 +2,7 @@
  * FILE: modules_visit/visit-core.js
  * CHỨC NĂNG: Core Logic - Khởi tạo ca khám, Quản lý State, Navigation & Tứ chẩn.
  * THƯ MỤC: modules_visit/
+ * CẬP NHẬT: Reset và Load trạng thái thanh toán cho UI 2 nút (Paid/Unpaid).
  */
 
 // ============================================================
@@ -15,14 +16,14 @@ window.currentVisit = {
     eastDays: 1, westDays: 1,
     eastNote: "", westNote: "",
     manualPriceEast: 0, manualPriceWest: 0,
+    isSacThuoc: false, sacQty: 0, sacPrice: 10000,
     tuChan: {vong:[],van:[],vanhoi:[],thiet:[],thietchan:[],machchan:[]} 
 };
 
-// Biến toàn cục cho AI và Bản đồ
 window.currentAiSuggestions = { points: [], herbs: [], messages: [], syndromeFound: null };
 window.currentAcupointFilter = { type: 'region', value: 'all' }; 
 window.currentHerbFilter = 'all'; 
-window.currentBodyView = 'front'; // Mặc định nhìn mặt trước
+window.currentBodyView = 'front'; 
 
 window.visitModuleReady = true;
 
@@ -37,7 +38,15 @@ window.setupNativeInputs = function() {
         { id: 'vPulse', handler: null },
         { id: 'vHeight', handler: window.updateHeightWeightDisplay },
         { id: 'vWeight', handler: window.updateHeightWeightDisplay },
-        { id: 'vEastDays', handler: window.calcTotal },
+        
+        { id: 'vEastDays', handler: () => {
+            const days = parseInt(document.getElementById('vEastDays').value) || 1;
+            const sacQtyInput = document.getElementById('vSacQty');
+            if (sacQtyInput && document.getElementById('vIsSacThuoc').checked) {
+                sacQtyInput.value = days;
+            }
+            window.calcTotal();
+        }},
         { id: 'vWestDays', handler: window.calcTotal },
         { id: 'vEastManualPrice', handler: window.calcTotal },
         { id: 'vWestManualPrice', handler: window.calcTotal },
@@ -48,6 +57,8 @@ window.setupNativeInputs = function() {
             if(btn) btn.innerText = val + "% ▼";
             window.calcTotal();
         }},
+        { id: 'vSacQty', handler: window.calcTotal },
+        { id: 'vSacPrice', handler: window.calcTotal },
         { id: 'pYear', handler: null },
         { id: 'pPhone', handler: null, type: 'tel' }
     ];
@@ -106,6 +117,7 @@ window.startVisit = function(pid, vid=null) {
         step: 1, rxEast: [], rxWest: [], procs: [], acupoints: [],
         manualMedTotalEast: 0, manualMedTotalWest: 0, eastDays: 1, westDays: 1,
         eastNote: "", westNote: "", manualPriceEast: 0, manualPriceWest: 0,
+        isSacThuoc: false, sacQty: 1, sacPrice: 10000,
         tuChan: {vong:[],van:[],vanhoi:[],thiet:[],thietchan:[],machchan:[]} 
     };
     window.currentAiSuggestions = { points: [], herbs: [], messages: [], syndromeFound: null };
@@ -123,7 +135,16 @@ window.startVisit = function(pid, vid=null) {
     document.getElementById('vEastNote').value = "";
     document.getElementById('vWestNote').value = "";
     
-    // Reset displays
+    const elSacCheck = document.getElementById('vIsSacThuoc');
+    const elSacQty = document.getElementById('vSacQty');
+    const elSacPrice = document.getElementById('vSacPrice');
+    const elSacArea = document.getElementById('sacThuocArea');
+    
+    if(elSacCheck) elSacCheck.checked = false;
+    if(elSacQty) elSacQty.value = 1;
+    if(elSacPrice) elSacPrice.value = 10000;
+    if(elSacArea) elSacArea.classList.add('hidden');
+
     ['displayMedTotalEast','displayMedTotalWest','displayProcTotal','displayGrandTotal','finalTotal'].forEach(id => {
         const el = document.getElementById(id);
         if(el) el.innerText = '0đ';
@@ -134,14 +155,24 @@ window.startVisit = function(pid, vid=null) {
     const acuList = document.getElementById('vAcupointList');
     if(acuList) acuList.innerHTML = '';
     
-    // Load Danh sách bệnh mẫu từ Config
+    // [NEW] Reset 2 nút thanh toán về trạng thái chưa chọn (Mặc định)
+    const paidState = document.getElementById('vPaidState');
+    const btnPaid = document.getElementById('btnPaid');
+    const btnUnpaid = document.getElementById('btnUnpaid');
+    
+    if (paidState && btnPaid && btnUnpaid) {
+        paidState.value = ""; // Xóa giá trị cũ để ép chọn lại
+        // Reset style về mặc định (xám nhạt)
+        btnPaid.className = "py-4 rounded-xl border border-gray-200 text-gray-500 font-bold text-sm uppercase transition-all hover:bg-gray-50";
+        btnUnpaid.className = "py-4 rounded-xl border border-gray-200 text-gray-500 font-bold text-sm uppercase transition-all hover:bg-gray-50";
+    }
+
     if(window.config.diseases) {
         document.getElementById('vDiseaseSelect').innerHTML = '<option value="">-- Chọn bệnh mẫu --</option>' + window.config.diseases.map(d=>`<option value="${d.name}">${d.name}</option>`).join('');
     }
     
     window.initDefaultValues();
 
-    // Nếu sửa đơn cũ -> Load dữ liệu
     if(vid) {
         const v = p.visits.find(x => x.id == vid);
         if(v) {
@@ -150,7 +181,12 @@ window.startVisit = function(pid, vid=null) {
             document.getElementById('vSpecial').value = v.symptoms; 
             document.getElementById('vCost').value = v.cost;
             document.getElementById('vDiscountPercent').value = v.disc || 0; 
-            document.getElementById('vPaid').checked = v.paid;
+            
+            // [NEW] Load trạng thái thanh toán cũ vào UI
+            if (window.setPaymentStatus) {
+                // Tham số thứ 2 là 'true' -> Bỏ qua hộp thoại confirm khi đang load dữ liệu
+                window.setPaymentStatus(v.paid, true); 
+            }
             
             if(v.tuChan) window.currentVisit.tuChan = v.tuChan;
             if(v.vong) document.getElementById('vVongExtra').value = v.vong;
@@ -165,16 +201,24 @@ window.startVisit = function(pid, vid=null) {
             document.getElementById('vEastManualPrice').value = window.currentVisit.manualPriceEast || "";
             document.getElementById('vWestManualPrice').value = window.currentVisit.manualPriceWest || "";
 
+            if (v.isSacThuoc) {
+                window.currentVisit.isSacThuoc = true;
+                window.currentVisit.sacQty = v.sacQty || v.eastDays || 1;
+                window.currentVisit.sacPrice = v.sacPrice || 10000;
+                
+                if(elSacCheck) elSacCheck.checked = true;
+                if(elSacQty) elSacQty.value = window.currentVisit.sacQty;
+                if(elSacPrice) elSacPrice.value = window.currentVisit.sacPrice;
+                if(elSacArea) elSacArea.classList.remove('hidden');
+            }
+
             window.currentVisit.rxEast = JSON.parse(JSON.stringify(v.rxEast||[])); 
             window.currentVisit.rxWest = JSON.parse(JSON.stringify(v.rxWest||[]));
             window.currentVisit.procs = JSON.parse(JSON.stringify(v.procs||[]));
             window.currentVisit.acupoints = JSON.parse(JSON.stringify(v.acupoints||[]));
         }
-    } else {
-        document.getElementById('vPaid').checked = true;
-    }
+    } 
     
-    // Render tất cả danh sách (Các hàm này nằm ở các module meds, procs, map)
     if(window.renderMedList) window.renderMedList('east'); 
     if(window.renderMedList) window.renderMedList('west'); 
     if(window.renderProcOptions) window.renderProcOptions();
@@ -183,8 +227,6 @@ window.startVisit = function(pid, vid=null) {
     if(window.calcTotal) window.calcTotal(); 
     
     window.setupNativeInputs();
-    
-    // [QUAN TRỌNG] Đồng bộ nút Sáng/Trưa/Chiều/Tối nếu có dữ liệu cũ
     if(window.updateGlobalButtonsFromText) window.updateGlobalButtonsFromText();
 
     window.goToStep(1); 
@@ -213,7 +255,6 @@ window.goToStep = function(s) {
     if(s===3) {
         if(window.injectCustomButtons) window.injectCustomButtons(); 
         try { if(window.refreshAiSuggestion) window.refreshAiSuggestion(false); } catch(e){}
-        // [FIX] Cập nhật lại màu sắc nút Time Capsules khi chuyển sang tab 3
         if(window.updateGlobalButtonsFromText) window.updateGlobalButtonsFromText();
     }
     if(s===4 && window.config.qrCodeImage) {
@@ -271,11 +312,9 @@ window.loadDiseaseSuggestions = function() {
             document.getElementById('symptomButtons').innerHTML = syms.map(s=>`<span onclick="window.addSymptom('${s}')" class="med-chip cursor-pointer bg-green-100 text-green-800 px-2 py-1 rounded text-xs hover:bg-green-200">+ ${s}</span>`).join(''); 
         } else if(box) box.classList.add('hidden');
         
-        // Load Tây Y
         window.currentVisit.rxWest = JSON.parse(JSON.stringify(d.rxWest||[])); 
         if(window.renderMedList) window.renderMedList('west');
         
-        // Load Đông Y Presets
         if(d.eastOptions?.length && preArea) { 
             preArea.classList.remove('hidden'); 
             document.getElementById('eastPresetButtons').innerHTML = d.eastOptions.map((o,i)=>`
