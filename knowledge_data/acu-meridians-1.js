@@ -551,6 +551,28 @@ window.knowledge.acupoints = window.knowledge.acupoints || [];
             tags: ['tai', 'răng']
         }
     ];
+// BỔ SUNG HUYỆT THIẾU (ST42, BL64)
+(function() {
+    const missingPoints = [
+        { 
+            id: 'ST42', name: 'Xung Dương', meridian: 'Vị', 
+            type: 'Huyệt Nguyên',
+            function: 'Hòa vị, định thần, khu phong.',
+            indications: 'Liệt mặt, đau răng, sưng mu bàn chân, điên cuồng, sốt.',
+            tags: ['mặt', 'răng', 'chân']
+        },
+        { 
+            id: 'BL64', name: 'Kinh Cốt', meridian: 'Bàng Quang', 
+            type: 'Huyệt Nguyên',
+            function: 'Sơ phong, thanh nhiệt, minh mục.',
+            indications: 'Đau đầu, cứng gáy, đau thắt lưng, hoa mắt, động kinh.',
+            tags: ['đầu', 'gáy', 'lưng', 'mắt']
+        }
+    ];
+    if(window.knowledge && window.knowledge.acupoints) {
+        window.knowledge.acupoints = window.knowledge.acupoints.concat(missingPoints);
+    }
+})();
 
     // Nối dữ liệu vào mảng chính
     window.knowledge.acupoints = window.knowledge.acupoints.concat(dataPart1);
