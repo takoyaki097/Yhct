@@ -2,8 +2,9 @@
  * FILE: modules_core/knowledge-base-ui.js
  * CHỨC NĂNG: Giao diện Knowledge Base 2.0 (Split View) + AI Thông Minh.
  * CẬP NHẬT: 
- * - Tích hợp cứng nút Thêm/Xóa vào chân trang chi tiết (Không cần file bridge).
- * - Hiển thị full tên huyệt (Mã + Tên) trong bảng AI Tí Ngọ.
+ * - [FIX] Reset bộ lọc (Filter Group) khi chuyển đổi giữa các chế độ (Herb/West/Acu).
+ * - [NEW] Tính năng Search đa năng: Tìm theo Tên hoặc Mã Code (VD: st36, li4).
+ * - Tích hợp cứng nút Thêm/Xóa vào chân trang chi tiết.
  */
 
 window.KnowledgeUI = {
@@ -17,7 +18,21 @@ window.KnowledgeUI = {
         this.state.selectedId = null;
         this.state.filterGroup = 'all';
         this.state.searchTerm = '';
+        
         this.renderModalStructure();
+        
+        // [FIX LOGIC SORT] Reset các thành phần UI để tránh dính dữ liệu cũ
+        const groupSelect = document.getElementById('kbGroupFilter');
+        const searchInput = document.getElementById('kbSearch');
+        
+        if (groupSelect) {
+            groupSelect.innerHTML = ''; // Xóa sạch options cũ để renderSidebar tạo lại list mới
+            groupSelect.value = 'all';  // Reset giá trị về All
+        }
+        if (searchInput) {
+            searchInput.value = '';     // Xóa ô tìm kiếm
+        }
+
         this.renderSidebar();
         this.renderRightPanel(null); 
         document.getElementById('kbModal').classList.add('active');
@@ -87,7 +102,7 @@ window.KnowledgeUI = {
                                 </button>
                                 <div class="relative group">
                                     <span class="absolute left-3 top-2.5 text-gray-400 text-xs">🔍</span>
-                                    <input type="text" id="kbSearch" onkeyup="window.KnowledgeUI.renderSidebar()" placeholder="Tìm kiếm..." class="w-full pl-8 pr-3 py-2 rounded-xl border border-[#d7ccc8] bg-white text-sm text-[#3e2723] focus:border-[#5d4037] outline-none transition-all shadow-sm">
+                                    <input type="text" id="kbSearch" onkeyup="window.KnowledgeUI.renderSidebar()" placeholder="Tìm kiếm (Tên hoặc Mã)..." class="w-full pl-8 pr-3 py-2 rounded-xl border border-[#d7ccc8] bg-white text-sm text-[#3e2723] focus:border-[#5d4037] outline-none transition-all shadow-sm">
                                 </div>
                                 <select id="kbGroupFilter" onchange="window.KnowledgeUI.renderSidebar()" class="w-full py-1.5 px-2 rounded-lg border border-[#eee] text-xs font-bold text-[#5d4037] bg-white outline-none cursor-pointer"></select>
                             </div>
@@ -109,23 +124,36 @@ window.KnowledgeUI = {
 
     renderSidebar: function() {
         const container = document.getElementById('kbListContainer');
+        // Cập nhật state từ DOM (nếu có)
         this.state.searchTerm = document.getElementById('kbSearch')?.value || '';
-        this.state.filterGroup = document.getElementById('kbGroupFilter')?.value || 'all';
+        
+        // Nếu DOM đang rỗng hoặc chưa chọn, ưu tiên state
+        const domFilterVal = document.getElementById('kbGroupFilter')?.value;
+        if(domFilterVal) this.state.filterGroup = domFilterVal;
         
         const items = this.getAllItems();
         
         const groupSelect = document.getElementById('kbGroupFilter');
+        // Logic tạo lại options nếu đang rỗng (do lệnh xóa ở hàm open) hoặc chưa đủ
         if (groupSelect && groupSelect.children.length <= 1) {
              const groups = this.getGroups();
              groupSelect.innerHTML = `<option value="all">📂 Tất cả nhóm (${items.length})</option>` + 
                 groups.map(g => `<option value="${g}">${g}</option>`).join('');
+             
+             // Đồng bộ lại giá trị select với state
+             groupSelect.value = this.state.filterGroup;
         }
 
         const filtered = items.filter(i => {
             const iGroup = (this.state.type === 'herb' ? (i.category || i.group) : (this.state.type === 'acu' ? (i.meridian || i.group) : i.group)) || '';
             const matchGroup = this.state.filterGroup === 'all' || iGroup === this.state.filterGroup;
-            const kw = this.state.searchTerm.toLowerCase();
-            const matchSearch = !kw || (i.name && i.name.toLowerCase().includes(kw));
+            const kw = this.state.searchTerm.toLowerCase().trim();
+            
+            // [NEW] Logic Search: Tìm cả Tên (name) và Mã (id)
+            const matchSearch = !kw || 
+                (i.name && i.name.toLowerCase().includes(kw)) || 
+                (i.id && i.id.toLowerCase().includes(kw)); // Support search 'st36', 'li4'...
+                
             return matchGroup && matchSearch;
         });
 
@@ -139,6 +167,9 @@ window.KnowledgeUI = {
             const bgClass = isActive ? 'bg-[#5d4037] text-white shadow-md border-transparent' : 'bg-white text-[#3e2723] hover:bg-[#efebe9] border-[#e0e0e0]';
             const subText = (this.state.type === 'herb' ? (i.category || i.group) : (this.state.type === 'acu' ? (i.meridian || i.group) : i.group)) || 'Chưa phân nhóm';
             
+            // Hiển thị tên có kèm mã ID nếu là Huyệt để dễ nhận biết
+            const displayName = (this.state.type === 'acu' && i.id) ? `${i.name} <span class="opacity-70 text-[10px] font-normal">(${i.id})</span>` : i.name;
+
             let isAdded = false;
             if (this.state.type === 'herb') isAdded = window.currentVisit.rxEast.some(x => x.name === i.name);
             else if (this.state.type === 'west') isAdded = window.currentVisit.rxWest.some(x => x.name === i.name);
@@ -147,7 +178,7 @@ window.KnowledgeUI = {
             return `
             <div onclick="window.KnowledgeUI.selectItem('${i.id}')" class="p-3 mb-1 rounded-xl border cursor-pointer transition-all duration-200 group ${bgClass}">
                 <div class="font-bold text-sm leading-tight mb-1 flex justify-between items-start">
-                    <span>${i.name}</span>
+                    <span>${displayName}</span>
                     ${isAdded ? '<span class="text-[10px] bg-green-500 text-white px-1.5 rounded-full shadow-sm">✓</span>' : (i.image ? '<span class="text-[10px] opacity-70">📷</span>' : '')}
                 </div>
                 <div class="text-[10px] opacity-70 truncate flex justify-between">
@@ -165,7 +196,7 @@ window.KnowledgeUI = {
         this.renderRightPanel(id); 
     },
 
-    // --- AI PANEL (ĐÃ NÂNG CẤP FULL TÊN + NÚT BẤM) ---
+    // --- AI PANEL ---
     _getAiPanelHtml: function(currentItem = null) {
         let showAi = false;
         let aiContent = '';
@@ -318,7 +349,6 @@ window.KnowledgeUI = {
             let info = item.info || {}; 
             const displayGroup = (this.state.type === 'herb' ? (item.category || item.group) : (this.state.type === 'acu' ? (item.meridian || item.group) : item.group)) || 'Chưa phân nhóm';
 
-            // ... (Phần render ảnh và info text giữ nguyên như bản trước) ...
             const imgHtml = item.image 
                 ? `<div class="w-full h-64 md:h-80 bg-gray-100 mb-6 rounded-xl overflow-hidden shadow-inner relative group border border-gray-200"><img src="${item.image}" class="w-full h-full object-contain mix-blend-multiply"></div>` 
                 : `<div class="w-full h-48 border-2 border-dashed border-[#d7ccc8] rounded-xl flex flex-col items-center justify-center bg-gray-50 relative cursor-pointer hover:bg-gray-100 transition-colors" onclick="document.getElementById('kbImgInput').click()"><span class="text-4xl text-gray-300 mb-2">📷</span><span class="text-xs text-gray-400 font-bold">Chạm để tải ảnh</span><input type="file" id="kbImgInput" accept="image/*" class="hidden" onchange="window.KnowledgeUI.handleImageUpload(this)"></div>`;
